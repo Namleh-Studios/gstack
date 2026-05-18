@@ -156,9 +156,15 @@ export async function downloadFile(url: string, dest: string): Promise<void> {
     });
     fs.renameSync(tmp, dest);
   } catch (err) {
-    // Close the writer and drop the half-written tmp so we don't leak an FD
-    // or ship a truncated model file to the renameSync path on retry.
-    try { writer.destroy(); } catch { /* already destroyed */ }
+    // Drop the half-written tmp so we don't ship a truncated model file to
+    // a retry's renameSync. Wait for the writer to close fully before
+    // unlinking: Node's createWriteStream lazily opens the FD and flushes
+    // buffered writes during destroy(), so a naive unlinkSync hits ENOENT
+    // first and the writer re-creates the file on the next tick.
+    await new Promise<void>((resolve) => {
+      writer.once('close', () => resolve());
+      writer.destroy();
+    });
     try { fs.unlinkSync(tmp); } catch { /* nothing to clean */ }
     throw err;
   }
