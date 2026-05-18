@@ -273,7 +273,7 @@ function resolveClaudeCodeCwd(
   return null;
 }
 
-function extractCwdFromJsonl(filePath: string): string | null {
+export function extractCwdFromJsonl(filePath: string): string | null {
   // Read a capped prefix so huge JSONL files don't blow up memory. 64KB
   // comfortably fits the largest observed session headers; the old 8KB cap
   // would sometimes fall inside a single long line and silently drop the

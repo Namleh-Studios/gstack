@@ -135,7 +135,7 @@ export function getClassifierStatus(): ClassifierStatus {
 
 // ─── Model download + staging ────────────────────────────────
 
-async function downloadFile(url: string, dest: string): Promise<void> {
+export async function downloadFile(url: string, dest: string): Promise<void> {
   const res = await fetch(url);
   if (!res.ok || !res.body) {
     throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);

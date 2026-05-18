@@ -136,7 +136,7 @@ function parsePdfArgs(args: string[]): ParsedPdfArgs {
   return result;
 }
 
-function parsePdfFromFile(payloadPath: string): ParsedPdfArgs {
+export function parsePdfFromFile(payloadPath: string): ParsedPdfArgs {
   // Parity with load-html --from-file (browse/src/write-commands.ts) and
   // the direct load-html <file> path: every caller-supplied file path
   // must pass validateReadPath so the safe-dirs policy can't be skirted
