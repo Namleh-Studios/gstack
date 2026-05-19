@@ -935,23 +935,21 @@ TMPERR=$(mktemp "$TMP_ROOT/codex-err-XXXXXX.txt")
 
 2. Run the review (5-minute timeout). **Codex CLI ≥ 0.130.0 rejects passing a
 custom prompt and `--base <branch>` together** (the two arguments are mutually
-exclusive at argv level), so the previously-prefixed filesystem boundary cannot
-be carried in review mode. Two paths:
+exclusive at argv level), so put the base diff scope in the prompt instead of
+passing `--base`. Two paths:
 
-**Default path (no custom user instructions):** call `codex review --base` bare.
-Codex's review prompt template is internally diff-scoped, so the model focuses on
-the changes against the base branch. The filesystem boundary that previously
-prefixed every review call is no longer carried in bare review mode; the skill
-files under `.claude/` and `agents/` are public, so this is a token-efficiency
-concern, not a safety concern. If a future diff happens to include skill files,
-Codex may spend a few extra tokens reading them. Acceptable trade-off:
+**Default path (no custom user instructions):** call `codex review` with the
+filesystem boundary and explicit diff-scope instructions in the prompt. This
+preserves the boundary while avoiding the prompt-plus-`--base` argv shape:
 
 ```bash
 _REPO_ROOT=$(git rev-parse --show-toplevel) || { echo "ERROR: not in a git repo" >&2; exit 1; }
 cd "$_REPO_ROOT"
 # 330s (5.5min) is slightly longer than the Bash 300s so the shell wrapper
 # only fires if Bash's own timeout doesn't.
-_gstack_codex_timeout_wrapper 330 codex review --base <base> -c 'model_reasoning_effort="high"' --enable web_search_cached < /dev/null 2>"$TMPERR"
+_gstack_codex_timeout_wrapper 330 codex review "IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, or agents/. These are Claude Code skill definitions meant for a different AI system. Do NOT modify agents/openai.yaml. Stay focused on repository code only.
+
+Review the changes on this branch against the base branch <base>. Run git diff origin/<base>...HEAD 2>/dev/null || git diff <base>...HEAD to see the diff and review only those changes." -c 'model_reasoning_effort="high"' --enable web_search_cached < /dev/null 2>"$TMPERR"
 _CODEX_EXIT=$?
 if [ "$_CODEX_EXIT" = "124" ]; then
   _gstack_codex_log_event "codex_timeout" "330"
@@ -992,11 +990,10 @@ if [ "$_CODEX_EXIT" = "124" ]; then
 fi
 ```
 
-**Why the dual path:** Bare `codex review` preserves Codex's built-in review
-prompt tuning (the CLI scopes the model to the diff and asks for severity-marked
-findings). The exec route loses that tuning but gains custom-instructions
-support; the prompt explicitly demands `[P1]` / `[P2]` markers so the gate logic
-in step 4 still works.
+**Why the dual path:** The default `codex review` path keeps Codex's review
+prompt tuning while scoping the diff in prompt text. The `codex exec` route loses
+that tuning but gains custom-instructions support; the prompt explicitly demands
+`[P1]` / `[P2]` markers so the gate logic in step 4 still works.
 
 Use `timeout: 300000` on the Bash call for either path.
 
