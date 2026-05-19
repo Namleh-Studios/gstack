@@ -22,6 +22,7 @@ import {
   slate,
   cursor,
   openclaw,
+  namlehCodex,
 } from '../hosts/index';
 import { HOST_PATHS } from '../scripts/resolvers/types';
 
@@ -30,8 +31,8 @@ const ROOT = path.resolve(import.meta.dir, '..');
 // ─── hosts/index.ts ─────────────────────────────────────────
 
 describe('hosts/index.ts', () => {
-  test('ALL_HOST_CONFIGS has 10 hosts', () => {
-    expect(ALL_HOST_CONFIGS.length).toBe(10);
+  test('ALL_HOST_CONFIGS has 11 hosts', () => {
+    expect(ALL_HOST_CONFIGS.length).toBe(11);
   });
 
   test('ALL_HOST_NAMES matches config names', () => {
@@ -53,6 +54,7 @@ describe('hosts/index.ts', () => {
     expect(slate.name).toBe('slate');
     expect(cursor.name).toBe('cursor');
     expect(openclaw.name).toBe('openclaw');
+    expect(namlehCodex.name).toBe('namleh-codex');
   });
 
   test('getHostConfig returns correct config', () => {
@@ -482,6 +484,10 @@ describe('host config correctness', () => {
   test('codex has boundary instruction', () => {
     expect(codex.boundaryInstruction).toBeDefined();
     expect(codex.boundaryInstruction).toContain('Do NOT read');
+  });
+
+  test('namleh-codex suppresses AI co-author trailers', () => {
+    expect(namlehCodex.suppressCoAuthorTrailer).toBe(true);
   });
 
   test('openclaw has tool rewrites for exec/read/write', () => {

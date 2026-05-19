@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Configure this checkout for Namleh-only gstack testing without touching the
+# normal ~/.gstack profile or the existing namleh-codex plugin install.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+STATE_DIR="${GSTACK_NAMLEH_HOME:-$HOME/.gstack-namleh}"
+CONFIG="$ROOT/bin/gstack-config"
+
+if [ ! -x "$CONFIG" ]; then
+  echo "namleh-gstack-profile: missing $CONFIG" >&2
+  exit 1
+fi
+
+export GSTACK_HOME="$STATE_DIR"
+export GSTACK_SETUP_RUNNING=1
+mkdir -p "$GSTACK_HOME"
+
+"$CONFIG" set telemetry off
+"$CONFIG" set proactive false
+"$CONFIG" set auto_upgrade false
+"$CONFIG" set update_check false
+"$CONFIG" set checkpoint_mode explicit
+"$CONFIG" set checkpoint_push false
+"$CONFIG" set codex_reviews enabled
+"$CONFIG" set skill_prefix false
+"$CONFIG" set artifacts_sync_mode off
+"$CONFIG" set artifacts_sync_mode_prompted true
+"$CONFIG" set workspace_root null
+
+SIDECAR="$ROOT/.namleh-gstack/skills/gstack"
+mkdir -p "$SIDECAR"
+for asset in bin browse review qa ETHOS.md; do
+  src="$ROOT/$asset"
+  dst="$SIDECAR/$asset"
+  if [ -e "$src" ]; then
+    if [ -L "$dst" ] || [ ! -e "$dst" ]; then
+      ln -snf "$src" "$dst"
+    fi
+  fi
+done
+
+echo "Namleh gstack profile ready."
+echo "  repo:  $ROOT"
+echo "  state: $GSTACK_HOME"
+echo "  sidecar: $SIDECAR"
+echo ""
+echo "Generate Namleh Codex test skills with:"
+echo "  bun run gen:skill-docs --host namleh-codex"
+echo ""
+echo "Use this state profile in a shell with:"
+echo "  export GSTACK_HOME=\"$GSTACK_HOME\""
