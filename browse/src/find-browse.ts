@@ -65,6 +65,16 @@ export function locateBinary(): string | null {
       const found = findExecutable(local);
       if (found) return found;
     }
+
+    // Source-checkout fallback (no installed skill layout — the binary
+    // lives directly at <repo>/browse/dist/browse[.exe]). Hit by:
+    // - gstack repo dev workflow before `./setup` runs
+    // - the windows-setup-e2e.yml CI workflow which builds binaries
+    //   in place but never installs them under a marker dir
+    // - make-pdf consumers running from a sibling source checkout
+    const sourceCheckout = join(root, 'browse', 'dist', 'browse');
+    const sourceFound = findExecutable(sourceCheckout);
+    if (sourceFound) return sourceFound;
   }
 
   // Global fallback
