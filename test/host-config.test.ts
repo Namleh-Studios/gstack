@@ -486,8 +486,8 @@ describe('host config correctness', () => {
     expect(codex.boundaryInstruction).toContain('Do NOT read');
   });
 
-  test('namleh-codex suppresses AI co-author trailers', () => {
-    expect(namlehCodex.suppressCoAuthorTrailer).toBe(true);
+  test('namleh-codex uses Codex co-author trailer', () => {
+    expect(namlehCodex.coAuthorTrailer).toContain('OpenAI Codex');
   });
 
   test('openclaw has tool rewrites for exec/read/write', () => {
@@ -519,6 +519,7 @@ describe('host config correctness', () => {
     expect(codex.coAuthorTrailer).toContain('Codex');
     expect(factory.coAuthorTrailer).toContain('Factory');
     expect(openclaw.coAuthorTrailer).toContain('OpenClaw');
+    expect(namlehCodex.coAuthorTrailer).toContain('OpenAI Codex');
   });
 
   test('every external host skips the codex skill', () => {

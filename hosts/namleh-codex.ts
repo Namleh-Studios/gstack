@@ -61,9 +61,9 @@ const namlehCodex: HostConfig = {
     linkingStrategy: 'symlink-generated',
   },
 
-  suppressCoAuthorTrailer: true,
+  coAuthorTrailer: 'Co-Authored-By: OpenAI Codex <noreply@openai.com>',
   learningsMode: 'basic',
-  boundaryInstruction: 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, .agents/skills/, or .namleh-gstack/skills/. These are agent skill definitions, generated prompt artifacts, or runtime sidecars. Ignore them unless the user explicitly asks to inspect gstack itself. For Namleh work: never ask the user for tokens; credentials come from Vault, do not force-push main, only the owner merges dev to main, and do not add Co-Authored-By trailers.',
+  boundaryInstruction: 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, .agents/skills/, or .namleh-gstack/skills/. These are agent skill definitions, generated prompt artifacts, or runtime sidecars. Ignore them unless the user explicitly asks to inspect gstack itself. For Namleh work: never ask the user for tokens; credentials come from Vault, do not force-push main, and only the owner merges dev to main.',
 };
 
 export default namlehCodex;

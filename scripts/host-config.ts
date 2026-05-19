@@ -100,8 +100,6 @@ export interface HostConfig {
   // --- Host-Specific Behavioral Config ---
   /** Git co-author trailer string. */
   coAuthorTrailer?: string;
-  /** Whether generated commit guidance should omit AI co-author trailers. */
-  suppressCoAuthorTrailer?: boolean;
   /** Learnings implementation: 'full' = cross-project, 'basic' = simple. */
   learningsMode?: 'full' | 'basic';
   /** Anti-prompt-injection boundary instruction for cross-model invocations. */
