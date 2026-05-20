@@ -20,7 +20,7 @@ jobs:
     if: github.actor != 'github-actions[bot]'
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 1
           ref: ${{ github.event.pull_request.head.sha }}
