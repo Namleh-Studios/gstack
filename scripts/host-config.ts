@@ -60,6 +60,8 @@ export interface HostConfig {
     generateMetadata: boolean;
     /** Metadata file format (e.g., 'openai.yaml'). */
     metadataFormat?: string | null;
+    /** Prefix for generated external skill directory/frontmatter names. Default: gstack. */
+    externalSkillPrefix?: string;
     /** Skill directories to exclude from generation for this host. */
     skipSkills?: string[];
     /** Skill directories to include (allowlist). Union logic: include minus skip. */
@@ -102,8 +104,12 @@ export interface HostConfig {
   coAuthorTrailer?: string;
   /** Learnings implementation: 'full' = cross-project, 'basic' = simple. */
   learningsMode?: 'full' | 'basic';
+  /** Optional host-specific gstack state directory under $HOME. */
+  stateRoot?: string;
   /** Anti-prompt-injection boundary instruction for cross-model invocations. */
   boundaryInstruction?: string;
+  /** Host-specific operating rules inserted into generated skill preambles. */
+  operatingInstructions?: string;
 
   /** Static files to copy alongside generated skills (e.g., { 'SOUL.md': 'openclaw/SOUL.md' }). */
   staticFiles?: Record<string, string>;
@@ -135,6 +141,12 @@ export function validateHostConfig(config: HostConfig): string[] {
         errors.push(`cliAlias '${alias}' contains invalid characters`);
       }
     }
+  }
+  if (config.generation.externalSkillPrefix && !NAME_REGEX.test(config.generation.externalSkillPrefix)) {
+    errors.push(`generation.externalSkillPrefix '${config.generation.externalSkillPrefix}' must be lowercase alphanumeric with hyphens`);
+  }
+  if (config.stateRoot && !PATH_REGEX.test(config.stateRoot)) {
+    errors.push(`stateRoot '${config.stateRoot}' contains invalid characters`);
   }
   if (!PATH_REGEX.test(config.globalRoot)) {
     errors.push(`globalRoot '${config.globalRoot}' contains invalid characters`);

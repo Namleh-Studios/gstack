@@ -490,6 +490,13 @@ describe('host config correctness', () => {
     expect(namlehCodex.coAuthorTrailer).toContain('OpenAI Codex');
   });
 
+  test('namleh-codex keeps generated skills and state isolated', () => {
+    expect(namlehCodex.generation.externalSkillPrefix).toBe('namleh-gstack');
+    expect(namlehCodex.localSkillRoot).toBe('.namleh-gstack/skills/namleh-gstack');
+    expect(namlehCodex.stateRoot).toBe('.gstack-namleh');
+    expect(namlehCodex.operatingInstructions).toContain('credentials in Vault');
+  });
+
   test('openclaw has tool rewrites for exec/read/write', () => {
     expect(openclaw.toolRewrites).toBeDefined();
     expect(openclaw.toolRewrites!['use the Bash tool']).toBe('use the exec tool');

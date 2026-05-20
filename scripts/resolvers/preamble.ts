@@ -17,6 +17,7 @@
 
 
 import type { TemplateContext } from './types';
+import { getHostConfig } from '../../hosts/index';
 import { generateModelOverlay } from './model-overlay';
 import { generateQuestionTuning } from './question-tuning';
 
@@ -80,8 +81,13 @@ export function generatePreamble(ctx: TemplateContext): string {
   if (tier < 1 || tier > 4) {
     throw new Error(`Invalid preamble-tier: ${tier} in ${ctx.tmplPath}. Must be 1-4.`);
   }
+  const hostConfig = getHostConfig(ctx.host);
+  const hostInstructions = hostConfig.operatingInstructions
+    ? `## ${hostConfig.displayName} Operating Rules\n\n${hostConfig.operatingInstructions}`
+    : '';
   const sections = [
     generatePreambleBash(ctx),
+    hostInstructions,
     ...(ctx.skillName === 'make-pdf' ? [generateMakePdfSetup(ctx)] : []),
     // Plan-mode-skill semantics stays near the top: after bash (so _SESSION_ID /
     // _BRANCH / _TEL env vars are live) and before all onboarding gates so

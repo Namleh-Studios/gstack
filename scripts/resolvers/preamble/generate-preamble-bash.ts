@@ -3,6 +3,10 @@ import { getHostConfig } from '../../../hosts/index';
 
 export function generatePreambleBash(ctx: TemplateContext): string {
   const hostConfig = getHostConfig(ctx.host);
+  const stateBootstrap = hostConfig.stateRoot ? `export GSTACK_HOME="$HOME/${hostConfig.stateRoot}"
+` : '';
+  const stateDir = hostConfig.stateRoot ? '$GSTACK_HOME' : '~/.gstack';
+  const learningsRoot = hostConfig.stateRoot ? '$GSTACK_HOME' : '${GSTACK_HOME:-$HOME/.gstack}';
   const runtimeRoot = hostConfig.usesEnvVars
     ? `_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 GSTACK_ROOT="$HOME/${hostConfig.globalRoot}"
@@ -16,14 +20,14 @@ GSTACK_DESIGN="$GSTACK_ROOT/design/dist"
   return `## Preamble (run first)
 
 \`\`\`bash
-${runtimeRoot}_UPD=$(${ctx.paths.binDir}/gstack-update-check 2>/dev/null || ${ctx.paths.localSkillRoot}/bin/gstack-update-check 2>/dev/null || true)
+${runtimeRoot}${stateBootstrap}_UPD=$(${ctx.paths.binDir}/gstack-update-check 2>/dev/null || ${ctx.paths.localSkillRoot}/bin/gstack-update-check 2>/dev/null || true)
 [ -n "$_UPD" ] && echo "$_UPD" || true
-mkdir -p ~/.gstack/sessions
-touch ~/.gstack/sessions/"$PPID"
-_SESSIONS=$(find ~/.gstack/sessions -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
-find ~/.gstack/sessions -mmin +120 -type f -exec rm {} + 2>/dev/null || true
+mkdir -p ${stateDir}/sessions
+touch ${stateDir}/sessions/"$PPID"
+_SESSIONS=$(find ${stateDir}/sessions -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
+find ${stateDir}/sessions -mmin +120 -type f -exec rm {} + 2>/dev/null || true
 _PROACTIVE=$(${ctx.paths.binDir}/gstack-config get proactive 2>/dev/null || echo "true")
-_PROACTIVE_PROMPTED=$([ -f ~/.gstack/.proactive-prompted ] && echo "yes" || echo "no")
+_PROACTIVE_PROMPTED=$([ -f ${stateDir}/.proactive-prompted ] && echo "yes" || echo "no")
 _BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 echo "BRANCH: $_BRANCH"
 _SKILL_PREFIX=$(${ctx.paths.binDir}/gstack-config get skill_prefix 2>/dev/null || echo "false")
@@ -33,10 +37,10 @@ echo "SKILL_PREFIX: $_SKILL_PREFIX"
 source <(${ctx.paths.binDir}/gstack-repo-mode 2>/dev/null) || true
 REPO_MODE=\${REPO_MODE:-unknown}
 echo "REPO_MODE: $REPO_MODE"
-_LAKE_SEEN=$([ -f ~/.gstack/.completeness-intro-seen ] && echo "yes" || echo "no")
+_LAKE_SEEN=$([ -f ${stateDir}/.completeness-intro-seen ] && echo "yes" || echo "no")
 echo "LAKE_INTRO: $_LAKE_SEEN"
 _TEL=$(${ctx.paths.binDir}/gstack-config get telemetry 2>/dev/null || true)
-_TEL_PROMPTED=$([ -f ~/.gstack/.telemetry-prompted ] && echo "yes" || echo "no")
+_TEL_PROMPTED=$([ -f ${stateDir}/.telemetry-prompted ] && echo "yes" || echo "no")
 _TEL_START=$(date +%s)
 _SESSION_ID="$$-$(date +%s)"
 echo "TELEMETRY: \${_TEL:-off}"
@@ -46,11 +50,11 @@ if [ "$_EXPLAIN_LEVEL" != "default" ] && [ "$_EXPLAIN_LEVEL" != "terse" ]; then 
 echo "EXPLAIN_LEVEL: $_EXPLAIN_LEVEL"
 _QUESTION_TUNING=$(${ctx.paths.binDir}/gstack-config get question_tuning 2>/dev/null || echo "false")
 echo "QUESTION_TUNING: $_QUESTION_TUNING"
-mkdir -p ~/.gstack/analytics
+mkdir -p ${stateDir}/analytics
 if [ "$_TEL" != "off" ]; then
-echo '{"skill":"${ctx.skillName}","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")'"}'  >> ~/.gstack/analytics/skill-usage.jsonl 2>/dev/null || true
+echo '{"skill":"${ctx.skillName}","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")'"}'  >> ${stateDir}/analytics/skill-usage.jsonl 2>/dev/null || true
 fi
-for _PF in $(find ~/.gstack/analytics -maxdepth 1 -name '.pending-*' 2>/dev/null); do
+for _PF in $(find ${stateDir}/analytics -maxdepth 1 -name '.pending-*' 2>/dev/null); do
   if [ -f "$_PF" ]; then
     if [ "$_TEL" != "off" ] && [ -x "${ctx.paths.binDir}/gstack-telemetry-log" ]; then
       ${ctx.paths.binDir}/gstack-telemetry-log --event-type skill_run --skill _pending_finalize --outcome unknown --session-id "$_SESSION_ID" 2>/dev/null || true
@@ -60,7 +64,7 @@ for _PF in $(find ~/.gstack/analytics -maxdepth 1 -name '.pending-*' 2>/dev/null
   break
 done
 eval "$(${ctx.paths.binDir}/gstack-slug 2>/dev/null)" 2>/dev/null || true
-_LEARN_FILE="\${GSTACK_HOME:-$HOME/.gstack}/projects/\${SLUG:-unknown}/learnings.jsonl"
+_LEARN_FILE="${learningsRoot}/projects/\${SLUG:-unknown}/learnings.jsonl"
 if [ -f "$_LEARN_FILE" ]; then
   _LEARN_COUNT=$(wc -l < "$_LEARN_FILE" 2>/dev/null | tr -d ' ')
   echo "LEARNINGS: $_LEARN_COUNT entries loaded"

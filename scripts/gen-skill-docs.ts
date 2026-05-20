@@ -67,14 +67,19 @@ const MODEL_ARG_VAL: Model = (() => {
 
 // Re-export local copy for use in this file (matches codex-helpers.ts)
 // Accepts optional frontmatter name to support directory/invocation name divergence
-function externalSkillName(skillDir: string, frontmatterName?: string): string {
-  // Root skill (skillDir === '' or '.') always maps to 'gstack' regardless of frontmatter
-  if (skillDir === '.' || skillDir === '') return 'gstack';
+function externalSkillName(skillDir: string, frontmatterName?: string, prefix = 'gstack'): string {
+  // Root skill (skillDir === '' or '.') always maps to the host bundle prefix.
+  if (skillDir === '.' || skillDir === '') return prefix;
   // Use frontmatter name when it differs from directory name (e.g., run-tests/ with name: test)
-  const baseName = frontmatterName && frontmatterName !== skillDir ? frontmatterName : skillDir;
-  // Don't double-prefix: gstack-upgrade → gstack-upgrade (not gstack-gstack-upgrade)
-  if (baseName.startsWith('gstack-')) return baseName;
-  return `gstack-${baseName}`;
+  let baseName = frontmatterName && frontmatterName !== skillDir ? frontmatterName : skillDir;
+  if (baseName === prefix || baseName.startsWith(`${prefix}-`)) return baseName;
+  // Don't double-prefix existing gstack names for the stock prefix. For custom
+  // prefixes, strip the stock prefix so gstack-upgrade becomes namleh-gstack-upgrade.
+  if (baseName.startsWith('gstack-')) {
+    if (prefix === 'gstack') return baseName;
+    baseName = baseName.slice('gstack-'.length);
+  }
+  return `${prefix}-${baseName}`;
 }
 
 function extractNameAndDescription(content: string): { name: string; description: string } {
@@ -348,7 +353,8 @@ function processExternalHost(
 ): { content: string; outputPath: string; outputDir: string; symlinkLoop: boolean } {
   const hostConfig = getHostConfig(host);
 
-  const name = externalSkillName(skillDir === '.' ? '' : skillDir, frontmatterName);
+  const prefix = hostConfig.generation.externalSkillPrefix || 'gstack';
+  const name = externalSkillName(skillDir === '.' ? '' : skillDir, frontmatterName, prefix);
   const outputDir = path.join(ROOT, hostConfig.hostSubdir, 'skills', name);
   fs.mkdirSync(outputDir, { recursive: true });
   const outputPath = path.join(outputDir, 'SKILL.md');
@@ -371,6 +377,9 @@ function processExternalHost(
 
   // Transform frontmatter (host-aware)
   let result = transformFrontmatter(content, host);
+  if (hostConfig.generation.externalSkillPrefix) {
+    result = result.replace(/^name:\s*.+$/m, `name: ${name}`);
+  }
 
   // Insert safety advisory at the top of the body (after frontmatter)
   if (safetyProse) {

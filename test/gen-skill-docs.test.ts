@@ -2195,12 +2195,23 @@ describe('setup script validation', () => {
     // The Codex install section (section 5) should use the Codex function
     const codexSection = setupContent.slice(
       setupContent.indexOf('# 5. Install for Codex'),
-      setupContent.indexOf('# 6. Create')
+      setupContent.indexOf('# 5b. Install for Namleh Codex')
     );
     expect(codexSection).toContain('create_codex_runtime_root');
     expect(codexSection).toContain('link_codex_skill_dirs');
     expect(codexSection).not.toContain('link_claude_skill_dirs');
     expect(codexSection).not.toContain('_link_or_copy "$GSTACK_DIR" "$CODEX_GSTACK"');
+  });
+
+  test('Namleh Codex install uses isolated generated skills and state', () => {
+    const namlehSection = setupContent.slice(
+      setupContent.indexOf('# 5b. Install for Namleh Codex'),
+      setupContent.indexOf('# 6. Install for Kiro')
+    );
+    expect(namlehSection).toContain('create_namleh_codex_runtime_root');
+    expect(namlehSection).toContain('link_namleh_codex_skill_dirs');
+    expect(namlehSection).toContain('GSTACK_NAMLEH_HOME="$HOME/.gstack-namleh"');
+    expect(namlehSection).toContain('namleh-gstack-profile');
   });
 
   test('Codex install prefers repo-local .agents/skills when setup runs from there', () => {
@@ -2273,9 +2284,9 @@ describe('setup script validation', () => {
     expect(fnBody).toContain('rm -f "$target"');
   });
 
-  test('setup supports --host auto|claude|codex|kiro|opencode', () => {
+  test('setup supports --host auto|claude|codex|namleh-codex|kiro|opencode', () => {
     expect(setupContent).toContain('--host');
-    expect(setupContent).toContain('claude|codex|kiro|factory|opencode|auto');
+    expect(setupContent).toContain('claude|codex|namleh-codex|kiro|factory|opencode|auto');
   });
 
   test('auto mode detects claude, codex, kiro, and opencode binaries', () => {

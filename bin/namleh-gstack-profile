@@ -28,7 +28,7 @@ mkdir -p "$GSTACK_HOME"
 "$CONFIG" set artifacts_sync_mode_prompted true
 "$CONFIG" set workspace_root null
 
-SIDECAR="$ROOT/.namleh-gstack/skills/gstack"
+SIDECAR="$ROOT/.namleh-gstack/skills/namleh-gstack"
 mkdir -p "$SIDECAR"
 for asset in bin browse review qa ETHOS.md; do
   src="$ROOT/$asset"

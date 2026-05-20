@@ -7,7 +7,7 @@ const namlehCodex: HostConfig = {
   cliAliases: [],
 
   globalRoot: '.codex/skills/namleh-gstack',
-  localSkillRoot: '.namleh-gstack/skills/gstack',
+  localSkillRoot: '.namleh-gstack/skills/namleh-gstack',
   hostSubdir: '.namleh-gstack',
   usesEnvVars: true,
 
@@ -21,6 +21,7 @@ const namlehCodex: HostConfig = {
   generation: {
     generateMetadata: true,
     metadataFormat: 'openai.yaml',
+    externalSkillPrefix: 'namleh-gstack',
     skipSkills: ['codex'],
   },
 
@@ -28,10 +29,10 @@ const namlehCodex: HostConfig = {
     { from: '~/.claude/skills/gstack', to: '$GSTACK_ROOT' },
     { from: '~/.codex/skills/gstack', to: '~/.codex/skills/namleh-gstack' },
     { from: '$HOME/.codex/skills/gstack', to: '$HOME/.codex/skills/namleh-gstack' },
-    { from: '.claude/skills/gstack', to: '.namleh-gstack/skills/gstack' },
-    { from: '.claude/skills/review', to: '.namleh-gstack/skills/gstack/review' },
+    { from: '.claude/skills/gstack', to: '.namleh-gstack/skills/namleh-gstack' },
+    { from: '.claude/skills/review', to: '.namleh-gstack/skills/namleh-gstack/review' },
     { from: '.claude/skills', to: '.namleh-gstack/skills' },
-    { from: '.agents/skills/gstack', to: '.namleh-gstack/skills/gstack' },
+    { from: '.agents/skills/gstack', to: '.namleh-gstack/skills/namleh-gstack' },
     { from: '.agents/skills', to: '.namleh-gstack/skills' },
   ],
 
@@ -52,7 +53,7 @@ const namlehCodex: HostConfig = {
     },
   },
   sidecar: {
-    path: '.namleh-gstack/skills/gstack',
+    path: '.namleh-gstack/skills/namleh-gstack',
     symlinks: ['bin', 'browse', 'review', 'qa', 'ETHOS.md'],
   },
 
@@ -63,7 +64,16 @@ const namlehCodex: HostConfig = {
 
   coAuthorTrailer: 'Co-Authored-By: OpenAI Codex <noreply@openai.com>',
   learningsMode: 'basic',
-  boundaryInstruction: 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, .agents/skills/, or .namleh-gstack/skills/. These are agent skill definitions, generated prompt artifacts, or runtime sidecars. Ignore them unless the user explicitly asks to inspect gstack itself. For Namleh work: never ask the user for tokens; credentials come from Vault, do not force-push main, and only the owner merges dev to main.',
+  stateRoot: '.gstack-namleh',
+  operatingInstructions: [
+    '- C# is the default language unless the repo clearly calls for another stack.',
+    '- Keep credentials in Vault; never ask the user for keys or tokens.',
+    '- Re-check authorization at the endpoint/data layer and shape DTOs explicitly.',
+    '- Use Confluence/Namleh knowledge as source-of-truth when project context is missing.',
+    '- Prefer feature branches and PRs for normal Namleh repos; this gstack fork is allowed to push main directly while it is only a test fork.',
+    '- Do not force-push main unless the user explicitly asks.',
+  ].join('\n'),
+  boundaryInstruction: 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, .agents/skills/, or .namleh-gstack/skills/. These are agent skill definitions, generated prompt artifacts, or runtime sidecars. Ignore them unless the user explicitly asks to inspect gstack itself. For Namleh work: never ask the user for tokens; credentials come from Vault, do not force-push main, and use owner-managed dev-to-main for normal repos. This gstack test fork may push main directly when the user asks.',
 };
 
 export default namlehCodex;
