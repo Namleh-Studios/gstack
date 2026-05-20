@@ -5,8 +5,8 @@
  *
  * Uses Playwright + BrowserManager. The extension sidepanel is loaded via
  * file:// with a stubbed window.fetch that simulates the browse server
- * returning /health + /sidebar-chat responses. We inject security_event
- * entries via the stubbed /sidebar-chat response and assert:
+ * returning /health + /activity/stream responses. We inject security_event
+ * entries via the stubbed activity stream and assert:
  *
  *   * Banner renders (display: block, not display: none)
  *   * Title + subtitle text reflects domain + layer
@@ -81,14 +81,33 @@ async function installStubsBeforeLoad(page: Page, scenario: {
 
     // Stub EventSource — connectSSE() throws without this because file://
     // can't actually open an SSE connection to http://127.0.0.1.
+    const scenarioRef = params;
     (window as any).EventSource = class {
-      constructor() {}
-      addEventListener() {}
-      close() {}
+      listeners: Record<string, Function[]> = {};
+      closed = false;
+
+      constructor() {
+        setTimeout(() => {
+          if (this.closed) return;
+          for (const entry of scenarioRef.securityEntries ?? []) {
+            for (const cb of this.listeners.activity ?? []) {
+              cb({ data: JSON.stringify(entry) });
+            }
+          }
+        }, 0);
+      }
+
+      addEventListener(type: string, cb: Function) {
+        this.listeners[type] ??= [];
+        this.listeners[type].push(cb);
+      }
+
+      close() {
+        this.closed = true;
+      }
     };
 
     // Stub fetch.
-    const scenarioRef = params;
     const origFetch = window.fetch;
     window.fetch = async function (input: any, init?: any) {
       const url = String(input);
@@ -102,19 +121,7 @@ async function installStubsBeforeLoad(page: Page, scenario: {
           security: scenarioRef.healthSecurity ?? { status: 'degraded', layers: {}, lastUpdated: '' },
         }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
-      if (url.includes('/sidebar-chat')) {
-        return new Response(JSON.stringify({
-          entries: scenarioRef.securityEntries ?? [],
-          total: (scenarioRef.securityEntries ?? []).length,
-          agentStatus: 'idle',
-          activeTabId: 1,
-          security: scenarioRef.healthSecurity ?? { status: 'degraded', layers: {} },
-        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-      }
-      if (url.includes('/sidebar-tabs')) {
-        return new Response(JSON.stringify({ tabs: [] }), { status: 200 });
-      }
-      if (url.includes('/sidebar-activity')) {
+      if (url.endsWith('/sse-session')) {
         return new Response('{}', { status: 200 });
       }
       // Fall through for anything else we didn't scenario.
@@ -210,8 +217,8 @@ describe('sidepanel security DOM', () => {
     });
     await page.goto(SIDEPANEL_URL);
 
-    // The banner should become visible once /sidebar-chat poll delivers the
-    // security_event entry and addChatEntry routes it to showSecurityBanner.
+    // The banner should become visible once the activity stream delivers the
+    // security_event entry.
     await page.waitForSelector('#security-banner', { state: 'visible', timeout: 5000 });
     const displayed = await page.$eval('#security-banner', (el) =>
       window.getComputedStyle(el).display !== 'none',

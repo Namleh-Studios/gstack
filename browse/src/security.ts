@@ -435,7 +435,19 @@ export function resolveBashBinary(env: NodeJS.ProcessEnv = process.env): string 
     const trimmed = override.replace(/^"(.*)"$/, '$1');
     return path.isAbsolute(trimmed) ? trimmed : (Bun.which(trimmed, { PATH }) ?? null);
   }
-  return Bun.which('bash', { PATH }) ?? null;
+  const resolved = Bun.which('bash', { PATH });
+  if (resolved) return resolved;
+  if (process.platform !== 'win32') {
+    for (const candidate of ['/bin/bash', '/usr/bin/bash', '/usr/local/bin/bash', '/opt/homebrew/bin/bash']) {
+      try {
+        fs.accessSync(candidate, fs.constants.X_OK);
+        return candidate;
+      } catch {
+        // try next
+      }
+    }
+  }
+  return null;
 }
 
 /**

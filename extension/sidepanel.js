@@ -171,6 +171,135 @@ function formatTime(ts) {
 
 let pendingEntries = new Map();
 
+function applySecurityStatus(security) {
+  const shield = document.getElementById('security-shield');
+  if (!shield || !security) return;
+  const allowed = new Set(['protected', 'degraded', 'inactive']);
+  const status = allowed.has(security.status) ? security.status : 'inactive';
+  shield.style.display = '';
+  shield.dataset.status = status;
+  shield.setAttribute('aria-label', `Security status: ${status}`);
+  shield.title = `Security: ${status}`;
+  const label = document.getElementById('security-shield-label');
+  if (label) label.textContent = status === 'protected' ? 'SEC' : status === 'degraded' ? 'SEC!' : 'OFF';
+}
+
+function ensureSecurityNotice() {
+  let banner = document.getElementById('security-banner');
+  if (banner) return banner;
+
+  banner = document.createElement('div');
+  banner.id = 'security-banner';
+  banner.className = 'security-banner';
+  banner.style.display = 'none';
+  banner.setAttribute('role', 'alert');
+  banner.innerHTML = `
+    <button class="security-banner-close" id="security-banner-close" type="button" aria-label="Dismiss">&times;</button>
+    <div class="security-banner-icon" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M12 8v4"/>
+        <path d="M12 16h.01"/>
+      </svg>
+    </div>
+    <div class="security-banner-title" id="security-banner-title">Security blocked</div>
+    <div class="security-banner-subtitle" id="security-banner-subtitle"></div>
+    <button class="security-banner-expand" id="security-banner-expand" type="button" aria-expanded="false">
+      <span>Details</span>
+      <span class="security-banner-chevron" aria-hidden="true">⌄</span>
+    </button>
+    <div class="security-banner-details" id="security-banner-details" hidden>
+      <div class="security-banner-section-label">Layers</div>
+      <div class="security-banner-layers" id="security-banner-layers"></div>
+      <pre class="security-banner-suspect" id="security-banner-suspect" hidden></pre>
+    </div>
+  `;
+
+  const anchor = document.getElementById('conn-banner') || document.body.firstChild;
+  document.body.insertBefore(banner, anchor);
+
+  document.getElementById('security-banner-close')?.addEventListener('click', hideSecurityNotice);
+  document.getElementById('security-banner-expand')?.addEventListener('click', () => {
+    const details = document.getElementById('security-banner-details');
+    const btn = document.getElementById('security-banner-expand');
+    const next = btn?.getAttribute('aria-expanded') !== 'true';
+    if (btn) btn.setAttribute('aria-expanded', String(next));
+    if (details) details.hidden = !next;
+  });
+
+  return banner;
+}
+
+function hideSecurityNotice() {
+  const banner = document.getElementById('security-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+function layerLabel(layer) {
+  return String(layer || 'security')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function layerScore(value) {
+  if (typeof value !== 'number' || Number.isNaN(value)) return '';
+  return `${Math.round(value * 100)}%`;
+}
+
+function reasonText(reason) {
+  const normalized = String(reason || '').toLowerCase();
+  if (normalized.includes('canary') || normalized.includes('injection') || normalized.includes('ensemble')) {
+    return 'prompt injection detected';
+  }
+  return normalized ? normalized.replace(/_/g, ' ') : 'security event detected';
+}
+
+function renderSecurityNotice(entry) {
+  const banner = ensureSecurityNotice();
+  const title = document.getElementById('security-banner-title');
+  const subtitle = document.getElementById('security-banner-subtitle');
+  const layers = document.getElementById('security-banner-layers');
+  const suspect = document.getElementById('security-banner-suspect');
+  const details = document.getElementById('security-banner-details');
+  const expand = document.getElementById('security-banner-expand');
+
+  if (title) title.textContent = entry.verdict === 'warn' ? 'Security warning' : 'Security blocked';
+  const where = entry.domain || entry.channel || 'current session';
+  if (subtitle) subtitle.textContent = `${where} - ${reasonText(entry.reason)}`;
+
+  if (layers) {
+    layers.textContent = '';
+    const seen = new Set();
+    const rows = [];
+    if (entry.layer) rows.push({ layer: entry.layer, confidence: entry.confidence });
+    if (Array.isArray(entry.signals)) rows.push(...entry.signals);
+    for (const row of rows) {
+      const key = String(row.layer || '');
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      const el = document.createElement('div');
+      el.className = 'security-banner-layer';
+      const name = document.createElement('span');
+      name.className = 'security-banner-layer-name';
+      name.textContent = layerLabel(row.layer);
+      const score = document.createElement('span');
+      score.className = 'security-banner-layer-score';
+      score.textContent = layerScore(row.confidence);
+      el.append(name, score);
+      layers.appendChild(el);
+    }
+  }
+
+  const suspectText = entry.suspect || entry.text || entry.preview || '';
+  if (suspect) {
+    suspect.hidden = !suspectText;
+    suspect.textContent = suspectText ? String(suspectText) : '';
+  }
+  if (details) details.hidden = true;
+  if (expand) expand.setAttribute('aria-expanded', 'false');
+  banner.style.display = '';
+}
+
 function createEntryElement(entry) {
   const div = document.createElement('div');
   div.className = `activity-entry ${getEntryClass(entry)}`;
@@ -210,6 +339,8 @@ function addEntry(entry) {
   const empty = document.getElementById('empty-state');
   if (empty) empty.style.display = 'none';
 
+  if (entry.type === 'security_event') renderSecurityNotice(entry);
+
   if (entry.type === 'command_end') {
     for (const [id, el] of pendingEntries) {
       if (el.querySelector('.entry-command')?.textContent === entry.command) {
@@ -228,6 +359,10 @@ function addEntry(entry) {
   if (entry.url) document.getElementById('footer-url')?.textContent && (document.getElementById('footer-url').textContent = new URL(entry.url).hostname);
   lastId = Math.max(lastId, entry.id);
 }
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideSecurityNotice();
+});
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -1014,10 +1149,8 @@ async function tryConnect() {
           `Server healthy on port ${port}, connecting...`,
           `token: yes (from /health)\nStarting SSE + activity feed...`
         );
+        applySecurityStatus(data.security);
         updateConnection(`http://127.0.0.1:${port}`, data.token);
-        // The SEC shield used to drive off /health.security via the chat
-        // path's classifier; with the chat path ripped, the indicator is
-        // not driven yet. Leaving the shield element hidden by default.
         return;
       }
       setLoadingStatus(
@@ -1046,6 +1179,7 @@ tryConnect();
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'health') {
     if (msg.data) {
+      applySecurityStatus(msg.data.security);
       const url = `http://127.0.0.1:${msg.data.port || 34567}`;
       // Request token via targeted sendResponse (not broadcast) to limit exposure
       chrome.runtime.sendMessage({ type: 'getToken' }, (resp) => {

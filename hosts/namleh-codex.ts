@@ -22,11 +22,41 @@ const namlehCodex: HostConfig = {
     generateMetadata: true,
     metadataFormat: 'openai.yaml',
     externalSkillPrefix: 'namleh-gstack',
+    includeSkills: [
+      'autoplan',
+      'browse',
+      'canary',
+      'context-restore',
+      'context-save',
+      'cso',
+      'design-consultation',
+      'design-review',
+      'document-generate',
+      'document-release',
+      'health',
+      'investigate',
+      'learn',
+      'make-pdf',
+      'office-hours',
+      'plan-ceo-review',
+      'plan-design-review',
+      'plan-devex-review',
+      'plan-eng-review',
+      'plan-tune',
+      'qa',
+      'qa-only',
+      'retro',
+      'review',
+      'setup-browser-cookies',
+      'ship',
+    ],
     skipSkills: ['codex'],
   },
 
   pathRewrites: [
     { from: '~/.claude/skills/gstack', to: '$GSTACK_ROOT' },
+    { from: '~/.gstack', to: '$GSTACK_HOME' },
+    { from: '$HOME/.gstack', to: '$GSTACK_HOME' },
     { from: '~/.codex/skills/gstack', to: '~/.codex/skills/namleh-gstack' },
     { from: '$HOME/.codex/skills/gstack', to: '$HOME/.codex/skills/namleh-gstack' },
     { from: '.claude/skills/gstack', to: '.namleh-gstack/skills/namleh-gstack' },
@@ -47,14 +77,14 @@ const namlehCodex: HostConfig = {
   ],
 
   runtimeRoot: {
-    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'gstack-upgrade', 'ETHOS.md'],
+    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'design/dist', 'make-pdf/dist', 'ETHOS.md'],
     globalFiles: {
       'review': ['checklist.md', 'TODOS-format.md'],
     },
   },
   sidecar: {
     path: '.namleh-gstack/skills/namleh-gstack',
-    symlinks: ['bin', 'browse', 'review', 'qa', 'ETHOS.md'],
+    symlinks: ['bin', 'browse', 'design', 'make-pdf', 'review', 'qa', 'ETHOS.md'],
   },
 
   install: {

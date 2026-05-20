@@ -33,6 +33,13 @@ import { mintSkillToken, revokeSkillToken, generateSpawnId } from './skill-token
 const DEFAULT_TIMEOUT_SECONDS = 60;
 const MAX_STDOUT_BYTES = 1024 * 1024; // 1 MB
 
+function resolveBunExecutable(): string {
+  const active = process.execPath;
+  const base = path.basename(active).toLowerCase();
+  if (base === 'bun' || base === 'bun.exe') return active;
+  return (Bun as any).which?.('bun') || 'bun';
+}
+
 // ─── Public command dispatcher ──────────────────────────────────
 
 export interface SkillCommandContext {
@@ -185,7 +192,7 @@ async function handleTest(args: string[], ctx: SkillCommandContext): Promise<str
     throw new Error(`Skill "${name}" has no script.test.ts at ${testFile}`);
   }
 
-  const proc = Bun.spawn(['bun', 'test', testFile], {
+  const proc = Bun.spawn([resolveBunExecutable(), 'test', testFile], {
     cwd: skill.dir,
     stdout: 'pipe',
     stderr: 'pipe',
@@ -240,7 +247,7 @@ export interface SpawnSkillResult {
  * 1. Mint a scoped token (read+write only; expires at timeout + 30s slack).
  * 2. Build the env: trusted=true → process.env; trusted=false → scrubbed.
  *    GSTACK_PORT and GSTACK_SKILL_TOKEN are always set.
- * 3. Spawn `bun run script.ts -- <args>` with cwd=skill.dir.
+ * 3. Spawn the skill script with the active Bun runtime and cwd=skill.dir.
  * 4. Capture stdout (capped at 1MB) and stderr; enforce timeout.
  * 5. On exit/timeout, revoke the token. Always.
  */
@@ -263,7 +270,7 @@ export async function spawnSkill(opts: SpawnSkillOptions): Promise<SpawnSkillRes
       throw new Error(`Skill "${opts.skill.name}" missing script.ts at ${scriptPath}`);
     }
 
-    const proc = Bun.spawn(['bun', 'run', scriptPath, '--', ...opts.skillArgs], {
+    const proc = Bun.spawn([resolveBunExecutable(), 'run', scriptPath, '--', ...opts.skillArgs], {
       cwd: opts.skill.dir,
       env,
       stdout: 'pipe',

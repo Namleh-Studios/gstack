@@ -39,20 +39,19 @@ describe('validateOutputPath', () => {
 describe('upload command path validation', () => {
   const src = readFileSync(join(__dirname, '..', 'src', 'write-commands.ts'), 'utf-8');
 
-  it('validates upload paths with isPathWithin', () => {
+  it('validates upload paths with validateReadPath', () => {
     const uploadBlock = src.slice(src.indexOf("case 'upload'"), src.indexOf("case 'dialog-accept'"));
-    expect(uploadBlock).toContain('isPathWithin');
+    expect(uploadBlock).toContain('validateReadPath');
   });
 
-  it('blocks path traversal in upload', () => {
+  it('blocks symlink/path traversal in upload via canonical read policy', () => {
     const uploadBlock = src.slice(src.indexOf("case 'upload'"), src.indexOf("case 'dialog-accept'"));
-    expect(uploadBlock).toContain("'..'");
+    expect(uploadBlock).toContain('path.resolve');
   });
 
-  it('checks absolute paths against safe directories', () => {
+  it('requires regular files for upload', () => {
     const uploadBlock = src.slice(src.indexOf("case 'upload'"), src.indexOf("case 'dialog-accept'"));
-    expect(uploadBlock).toContain('path.isAbsolute');
-    expect(uploadBlock).toContain('SAFE_DIRECTORIES');
+    expect(uploadBlock).toContain('isFile()');
   });
 });
 

@@ -21,6 +21,7 @@ GSTACK_ROOT="$HOME/.factory/skills/gstack"
 GSTACK_BIN="$GSTACK_ROOT/bin"
 GSTACK_BROWSE="$GSTACK_ROOT/browse/dist"
 GSTACK_DESIGN="$GSTACK_ROOT/design/dist"
+GSTACK_MAKE_PDF="$GSTACK_ROOT/make-pdf/dist"
 _UPD=$($GSTACK_BIN/gstack-update-check 2>/dev/null || .factory/skills/gstack/bin/gstack-update-check 2>/dev/null || true)
 [ -n "$_UPD" ] && echo "$_UPD" || true
 mkdir -p ~/.gstack/sessions
@@ -40,7 +41,8 @@ REPO_MODE=${REPO_MODE:-unknown}
 echo "REPO_MODE: $REPO_MODE"
 _LAKE_SEEN=$([ -f ~/.gstack/.completeness-intro-seen ] && echo "yes" || echo "no")
 echo "LAKE_INTRO: $_LAKE_SEEN"
-_TEL=$($GSTACK_BIN/gstack-config get telemetry 2>/dev/null || true)
+_TEL=$($GSTACK_BIN/gstack-config get telemetry 2>/dev/null || echo "off")
+[ -z "$_TEL" ] && _TEL="off"
 _TEL_PROMPTED=$([ -f ~/.gstack/.telemetry-prompted ] && echo "yes" || echo "no")
 _TEL_START=$(date +%s)
 _SESSION_ID="$$-$(date +%s)"

@@ -2,7 +2,7 @@
  * Auth resolution for OpenAI API access.
  *
  * Resolution order:
- * 1. ~/.gstack/openai.json → { "api_key": "sk-..." }
+ * 1. $GSTACK_HOME/openai.json or ~/.gstack/openai.json → { "api_key": "sk-..." }
  * 2. OPENAI_API_KEY environment variable
  * 3. null (caller handles guided setup or fallback)
  *
@@ -11,6 +11,9 @@
  * the source on stderr before the run. Catches the silent-billing surface
  * reported in #1248: design generation inside someone else's project would
  * silently bill their OpenAI account if their .env was loaded into the shell.
+ *
+ * Namleh profile: local credential files are disabled. The key must be injected
+ * for the command process by the approved Namleh secret source.
  */
 
 import fs from "fs";
@@ -26,7 +29,14 @@ export interface ApiKeyResolution {
 }
 
 function configPath(): string {
-  return path.join(process.env.HOME || "~", ".gstack", "openai.json");
+  const stateRoot = process.env.GSTACK_HOME || path.join(process.env.HOME || "~", ".gstack");
+  return path.join(stateRoot, "openai.json");
+}
+
+export function isNamlehProfile(): boolean {
+  if (process.env.GSTACK_NAMLEH_PROFILE === "1") return true;
+  const stateRoot = process.env.GSTACK_HOME;
+  return !!stateRoot && path.basename(stateRoot) === ".gstack-namleh";
 }
 
 function readEnvValue(filePath: string, key: string): string | null {
@@ -69,25 +79,30 @@ function matchingCwdEnvFile(key: string, value: string): string | null {
 }
 
 export function resolveApiKeyInfo(): ApiKeyResolution | null {
-  // 1. Check ~/.gstack/openai.json
-  try {
-    const authPath = configPath();
-    if (fs.existsSync(authPath)) {
-      const content = fs.readFileSync(authPath, "utf-8");
-      const config = JSON.parse(content);
-      if (config.api_key && typeof config.api_key === "string") {
-        return { key: config.api_key, source: "config" };
+  // 1. Check state-local config unless this is the Namleh profile. Namleh
+  // secrets are Vault-owned and must not be cached in local gstack state.
+  if (!isNamlehProfile()) {
+    try {
+      const authPath = configPath();
+      if (fs.existsSync(authPath)) {
+        const content = fs.readFileSync(authPath, "utf-8");
+        const config = JSON.parse(content);
+        if (config.api_key && typeof config.api_key === "string") {
+          return { key: config.api_key, source: "config" };
+        }
       }
+    } catch {
+      // Fall through to env var
     }
-  } catch {
-    // Fall through to env var
   }
 
   // 2. Check environment variable
   if (process.env.OPENAI_API_KEY) {
     const envFile = matchingCwdEnvFile("OPENAI_API_KEY", process.env.OPENAI_API_KEY);
     const warning = envFile
-      ? `Warning: OPENAI_API_KEY matches ${envFile} in the current directory. Design generation may bill that project's OpenAI account. Run $D setup to store a gstack-specific key in ~/.gstack/openai.json.`
+      ? isNamlehProfile()
+        ? `Warning: OPENAI_API_KEY matches ${envFile} in the current directory. Namleh design generation should receive keys only from the approved secret source for this command process.`
+        : `Warning: OPENAI_API_KEY matches ${envFile} in the current directory. Design generation may bill that project's OpenAI account. Run $D setup to store a gstack-specific key in ${describeConfigPath()}.`
       : undefined;
     return { key: process.env.OPENAI_API_KEY, source: "env", envFile: envFile ?? undefined, warning };
   }
@@ -100,15 +115,23 @@ export function resolveApiKey(): string | null {
 }
 
 export function describeApiKeySource(resolution: ApiKeyResolution): string {
-  if (resolution.source === "config") return "~/.gstack/openai.json";
+  if (resolution.source === "config") return describeConfigPath();
   if (resolution.envFile) return `OPENAI_API_KEY environment variable (matches ${resolution.envFile} in current directory)`;
   return "OPENAI_API_KEY environment variable";
 }
 
+function describeConfigPath(): string {
+  if (process.env.GSTACK_HOME) return "$GSTACK_HOME/openai.json";
+  return "~/.gstack/openai.json";
+}
+
 /**
- * Save an API key to ~/.gstack/openai.json with 0600 permissions.
+ * Save an API key to the gstack auth file with 0600 permissions.
  */
 export function saveApiKey(key: string): void {
+  if (isNamlehProfile()) {
+    throw new Error("Namleh profile does not save API keys locally; inject the key from the approved secret source for the command process.");
+  }
   const dir = path.dirname(configPath());
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(configPath(), JSON.stringify({ api_key: key }, null, 2));
@@ -123,9 +146,13 @@ export function requireApiKey(): string {
   if (!resolution) {
     console.error("No OpenAI API key found.");
     console.error("");
-    console.error("Run: $D setup");
-    console.error("  or save to ~/.gstack/openai.json: { \"api_key\": \"sk-...\" }");
-    console.error("  or set OPENAI_API_KEY environment variable");
+    if (isNamlehProfile()) {
+      console.error("Namleh profile: inject OPENAI_API_KEY from the approved secret source for this command process.");
+    } else {
+      console.error("Run: $D setup");
+      console.error(`  or save to ${describeConfigPath()}: { "api_key": "sk-..." }`);
+      console.error("  or set OPENAI_API_KEY environment variable");
+    }
     console.error("");
     console.error("Get a key at: https://platform.openai.com/api-keys");
     process.exit(1);

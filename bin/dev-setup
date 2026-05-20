@@ -4,8 +4,8 @@
 # Creates .claude/skills/gstack → (symlink to repo root) so Claude Code
 # discovers skills from your working tree. Changes take effect immediately.
 #
-# Also copies .env from the main worktree if this is a Conductor workspace
-# or git worktree (so API keys carry over automatically).
+# Does not copy .env from other worktrees. Secrets must be injected only for the
+# process that needs them.
 #
 # Usage: bin/dev-setup       # set up
 #        bin/dev-teardown    # clean up
@@ -13,25 +13,16 @@ set -e
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# 1. Copy .env from main worktree (if we're a worktree and don't have one)
-if [ ! -f "$REPO_ROOT/.env" ]; then
-  MAIN_WORKTREE="$(git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null | head -1 | sed 's/^worktree //')"
-  if [ -n "$MAIN_WORKTREE" ] && [ "$MAIN_WORKTREE" != "$REPO_ROOT" ] && [ -f "$MAIN_WORKTREE/.env" ]; then
-    cp "$MAIN_WORKTREE/.env" "$REPO_ROOT/.env"
-    echo "Copied .env from main worktree ($MAIN_WORKTREE)"
-  fi
-fi
-
-# 2. Install dependencies
+# 1. Install dependencies
 if [ ! -d "$REPO_ROOT/node_modules" ]; then
   echo "Installing dependencies..."
   (cd "$REPO_ROOT" && bun install)
 fi
 
-# 3. Create .claude/skills/ inside the repo
+# 2. Create .claude/skills/ inside the repo
 mkdir -p "$REPO_ROOT/.claude/skills"
 
-# 4. Symlink .claude/skills/gstack → repo root
+# 3. Symlink .claude/skills/gstack → repo root
 # This makes setup think it's inside a real .claude/skills/ directory
 GSTACK_LINK="$REPO_ROOT/.claude/skills/gstack"
 if [ -L "$GSTACK_LINK" ]; then
@@ -44,7 +35,7 @@ elif [ -d "$GSTACK_LINK" ]; then
 fi
 ln -s "$REPO_ROOT" "$GSTACK_LINK"
 
-# 5. Create .agents/skills/gstack → repo root (for Codex/Gemini/Cursor)
+# 4. Create .agents/skills/gstack → repo root (for Codex/Gemini/Cursor)
 mkdir -p "$REPO_ROOT/.agents/skills"
 AGENTS_LINK="$REPO_ROOT/.agents/skills/gstack"
 if [ -L "$AGENTS_LINK" ]; then
@@ -56,7 +47,7 @@ if [ ! -e "$AGENTS_LINK" ]; then
   ln -s "$REPO_ROOT" "$AGENTS_LINK"
 fi
 
-# 6. Run setup via the symlink so it detects .claude/skills/ as its parent
+# 5. Run setup via the symlink so it detects .claude/skills/ as its parent
 "$GSTACK_LINK/setup"
 
 echo ""

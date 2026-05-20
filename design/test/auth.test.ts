@@ -17,12 +17,15 @@ import {
   resolveApiKey,
   resolveApiKeyInfo,
   saveApiKey,
+  isNamlehProfile,
 } from "../src/auth";
 
 let tmpDir: string;
 let tmpHome: string;
 let originalHome: string | undefined;
 let originalKey: string | undefined;
+let originalGstackHome: string | undefined;
+let originalNamlehProfile: string | undefined;
 let originalNodeEnv: string | undefined;
 let originalCwd: string;
 
@@ -33,11 +36,15 @@ beforeEach(() => {
 
   originalHome = process.env.HOME;
   originalKey = process.env.OPENAI_API_KEY;
+  originalGstackHome = process.env.GSTACK_HOME;
+  originalNamlehProfile = process.env.GSTACK_NAMLEH_PROFILE;
   originalNodeEnv = process.env.NODE_ENV;
   originalCwd = process.cwd();
 
   process.env.HOME = tmpHome;
   delete process.env.OPENAI_API_KEY;
+  delete process.env.GSTACK_HOME;
+  delete process.env.GSTACK_NAMLEH_PROFILE;
   delete process.env.NODE_ENV;
   process.chdir(tmpDir);
 });
@@ -48,6 +55,10 @@ afterEach(() => {
   else process.env.HOME = originalHome;
   if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
   else process.env.OPENAI_API_KEY = originalKey;
+  if (originalGstackHome === undefined) delete process.env.GSTACK_HOME;
+  else process.env.GSTACK_HOME = originalGstackHome;
+  if (originalNamlehProfile === undefined) delete process.env.GSTACK_NAMLEH_PROFILE;
+  else process.env.GSTACK_NAMLEH_PROFILE = originalNamlehProfile;
   if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
   else process.env.NODE_ENV = originalNodeEnv;
   fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -108,6 +119,21 @@ describe("resolveApiKeyInfo", () => {
     expect(resolution?.key).toBe("sk-shell");
     expect(resolution?.envFile).toBeUndefined();
     expect(resolution?.warning).toBeUndefined();
+  });
+
+  test("Namleh profile skips local config files and uses process-injected env", () => {
+    process.env.GSTACK_HOME = path.join(tmpDir, ".gstack-namleh");
+    process.env.GSTACK_NAMLEH_PROFILE = "1";
+    fs.mkdirSync(process.env.GSTACK_HOME, { recursive: true });
+    fs.writeFileSync(path.join(process.env.GSTACK_HOME, "openai.json"), JSON.stringify({ api_key: "sk-config" }));
+    process.env.OPENAI_API_KEY = "sk-env";
+
+    const resolution = resolveApiKeyInfo();
+
+    expect(isNamlehProfile()).toBe(true);
+    expect(resolution?.key).toBe("sk-env");
+    expect(resolution?.source).toBe("env");
+    expect(() => saveApiKey("sk-new")).toThrow(/does not save API keys locally/);
   });
 });
 

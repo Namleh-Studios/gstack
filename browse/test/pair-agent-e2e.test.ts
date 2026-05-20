@@ -136,6 +136,49 @@ describe('pair-agent flow end-to-end (HTTP only, no ngrok)', () => {
     expect(body.setup_key.length).toBeGreaterThan(10);
   });
 
+  test('POST /pair defaults to read+write only', async () => {
+    const resp = await fetch(`${daemon.baseUrl}/pair`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${daemon.token}`,
+      },
+      body: JSON.stringify({ clientId: 'default-scopes' }),
+    });
+    expect(resp.status).toBe(200);
+    const body = await resp.json() as any;
+    expect(body.scopes).toEqual(['read', 'write']);
+    expect(body.scopes).not.toContain('admin');
+    expect(body.scopes).not.toContain('control');
+  });
+
+  test('POST /pair grants admin and control only when requested', async () => {
+    const adminResp = await fetch(`${daemon.baseUrl}/pair`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${daemon.token}`,
+      },
+      body: JSON.stringify({ clientId: 'admin-scopes', admin: true }),
+    });
+    expect(adminResp.status).toBe(200);
+    const adminBody = await adminResp.json() as any;
+    expect(adminBody.scopes).toEqual(['read', 'write', 'admin', 'meta']);
+    expect(adminBody.scopes).not.toContain('control');
+
+    const controlResp = await fetch(`${daemon.baseUrl}/pair`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${daemon.token}`,
+      },
+      body: JSON.stringify({ clientId: 'control-scopes', control: true }),
+    });
+    expect(controlResp.status).toBe(200);
+    const controlBody = await controlResp.json() as any;
+    expect(controlBody.scopes).toEqual(['read', 'write', 'admin', 'meta', 'control']);
+  });
+
   test('POST /pair without root Bearer returns 403', async () => {
     const resp = await fetch(`${daemon.baseUrl}/pair`, {
       method: 'POST',

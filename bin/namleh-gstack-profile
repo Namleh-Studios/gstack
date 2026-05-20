@@ -13,6 +13,7 @@ if [ ! -x "$CONFIG" ]; then
 fi
 
 export GSTACK_HOME="$STATE_DIR"
+export GSTACK_NAMLEH_PROFILE=1
 export GSTACK_SETUP_RUNNING=1
 mkdir -p "$GSTACK_HOME"
 
@@ -30,7 +31,7 @@ mkdir -p "$GSTACK_HOME"
 
 SIDECAR="$ROOT/.namleh-gstack/skills/namleh-gstack"
 mkdir -p "$SIDECAR"
-for asset in bin browse review qa ETHOS.md; do
+for asset in bin browse design make-pdf review qa ETHOS.md; do
   src="$ROOT/$asset"
   dst="$SIDECAR/$asset"
   if [ -e "$src" ]; then
@@ -50,3 +51,4 @@ echo "  bun run gen:skill-docs --host namleh-codex"
 echo ""
 echo "Use this state profile in a shell with:"
 echo "  export GSTACK_HOME=\"$GSTACK_HOME\""
+echo "  export GSTACK_NAMLEH_PROFILE=1"

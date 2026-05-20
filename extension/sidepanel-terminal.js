@@ -301,7 +301,7 @@
     try {
       const resp = await fetch('http://127.0.0.1:34567/health');
       const body = await resp.json();
-      const token = body.AUTH_TOKEN || body.authToken || '';
+      const token = body.token || body.AUTH_TOKEN || body.authToken || '';
       if (token) window.__gstackPtyScanToken = token;
       return token;
     } catch {

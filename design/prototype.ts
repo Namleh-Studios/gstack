@@ -3,7 +3,7 @@
  * Sends 3 design briefs to GPT Image API via Responses API.
  * Validates: text rendering quality, layout accuracy, visual coherence.
  *
- * Run: OPENAI_API_KEY=$(cat ~/.gstack/openai.json | python3 -c "import sys,json;print(json.load(sys.stdin)['api_key'])") bun run design/prototype.ts
+ * Run with OPENAI_API_KEY injected for this command process.
  */
 
 import fs from "fs";
@@ -12,7 +12,7 @@ import path from "path";
 const API_KEY = process.env.OPENAI_API_KEY;
 
 if (!API_KEY) {
-  console.error("No API key found. Set OPENAI_API_KEY or save to ~/.gstack/openai.json");
+  console.error("No API key found. Inject OPENAI_API_KEY for this command process.");
   process.exit(1);
 }
 

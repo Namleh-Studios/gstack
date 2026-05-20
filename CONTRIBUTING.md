@@ -111,15 +111,13 @@ bin/dev-teardown
 ### Setup
 
 ```bash
-# 1. Copy .env.example and add your API key
-cp .env.example .env
-# Edit .env → set ANTHROPIC_API_KEY=sk-ant-...
-
-# 2. Install deps (if you haven't already)
+# 1. Install deps (if you haven't already)
 bun install
 ```
 
-Bun auto-loads `.env` — no extra config. Conductor workspaces inherit `.env` from the main worktree automatically (see "Conductor workspaces" below).
+`.env` is optional and local-only for non-secret toggles. Do not put API keys,
+service tokens, or tunnel credentials in `.env`; paid eval credentials must be
+injected from the approved secret source for your environment.
 
 ### Test tiers
 
@@ -197,7 +195,7 @@ Uses Claude Sonnet to score generated SKILL.md docs on three dimensions:
 Each dimension is scored 1-5. Threshold: every dimension must score **≥ 4**. There's also a regression test that compares generated docs against the hand-maintained baseline from `origin/main` — generated must score equal or higher.
 
 ```bash
-# Needs ANTHROPIC_API_KEY in .env — included in bun run test:evals
+# Needs ANTHROPIC_API_KEY injected for the command process
 ```
 
 - Uses `claude-sonnet-4-6` for scoring stability
@@ -326,14 +324,16 @@ If you're using [Conductor](https://conductor.build) to run multiple Claude Code
 
 | Hook | Script | What it does |
 |------|--------|-------------|
-| `setup` | `bin/dev-setup` | Copies `.env` from main worktree, installs deps, symlinks skills |
+| `setup` | `bin/dev-setup` | Installs deps and symlinks skills |
 | `archive` | `bin/dev-teardown` | Removes skill symlinks, cleans up `.claude/` directory |
 
-When Conductor creates a new workspace, `bin/dev-setup` runs automatically. It detects the main worktree (via `git worktree list`), copies your `.env` so API keys carry over, and sets up dev mode — no manual steps needed.
+When Conductor creates a new workspace, `bin/dev-setup` runs automatically. It detects the main worktree (via `git worktree list`), installs deps, and sets up dev mode — no manual steps needed.
 
-**First-time setup:** Put your `ANTHROPIC_API_KEY` in `.env` in the main repo (see `.env.example`). Every Conductor workspace inherits it automatically.
+**First-time setup:** Configure paid-eval credentials in the approved secret source
+for your environment. Do not copy API keys through `.env`, shell startup files, or
+workspace setup hooks.
 
-**`GSTACK_*` env prefix (Conductor-injected keys).** Conductor explicitly strips `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` from every workspace's process env. The `.env` copy path doesn't restore them either — the strip happens after env inheritance. Users who want paid evals, `/sync-gbrain` embeddings, or `claude-agent-sdk` calls to work in a Conductor workspace must set `GSTACK_ANTHROPIC_API_KEY` and `GSTACK_OPENAI_API_KEY` in Conductor's workspace env config; Conductor passes those through untouched. On the gstack side, TS entry points import `lib/conductor-env-shim.ts` as a side effect, which promotes `GSTACK_FOO_API_KEY` to `FOO_API_KEY` when the canonical name is empty. If you add a new TS entry point that hits a paid API, add `import "../lib/conductor-env-shim";` to the top of the file. Today the shim is imported from `bin/gstack-gbrain-sync.ts`, `bin/gstack-model-benchmark`, `scripts/preflight-agent-sdk.ts`, and `test/helpers/e2e-helpers.ts`.
+**`GSTACK_*` env prefix (Conductor-injected keys).** Conductor explicitly strips `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` from every workspace's process env. Users who want paid evals, `/sync-gbrain` embeddings, or `claude-agent-sdk` calls to work in a Conductor workspace must inject `GSTACK_ANTHROPIC_API_KEY` and `GSTACK_OPENAI_API_KEY` from the approved secret source into Conductor's workspace env config for that run; Conductor passes those through untouched. On the gstack side, TS entry points import `lib/conductor-env-shim.ts` as a side effect, which promotes `GSTACK_FOO_API_KEY` to `FOO_API_KEY` when the canonical name is empty. If you add a new TS entry point that hits a paid API, add `import "../lib/conductor-env-shim";` to the top of the file. Today the shim is imported from `bin/gstack-gbrain-sync.ts`, `bin/gstack-model-benchmark`, `scripts/preflight-agent-sdk.ts`, and `test/helpers/e2e-helpers.ts`.
 
 ## Things to know
 
@@ -342,7 +342,7 @@ When Conductor creates a new workspace, `bin/dev-setup` runs automatically. It d
 - **Browse source changes need a rebuild.** If you touch `browse/src/*.ts`, run `bun run build`.
 - **Dev mode shadows your global install.** Project-local skills take priority over `~/.claude/skills/gstack`. `bin/dev-teardown` restores the global one.
 - **Conductor workspaces are independent.** Each workspace is its own git worktree. `bin/dev-setup` runs automatically via `conductor.json`.
-- **`.env` propagates across worktrees.** Set it once in the main repo, all Conductor workspaces get it.
+- **Secrets do not propagate across worktrees.** Inject paid-eval credentials only for the command process that needs them.
 - **`.claude/skills/` is gitignored.** The symlinks never get committed.
 - **Never write raw `ln -snf` in `setup`.** Every link site in `setup` MUST route through the `_link_or_copy SRC DST` helper near the `IS_WINDOWS` detection. The helper preserves `ln -snf` on Unix and switches to `cp -R` / `cp -f` on Windows without Developer Mode, where plain `ln -snf` produces frozen file copies that don't refresh on `git pull`. `test/setup-windows-fallback.test.ts` enforces this with a static invariant — a single raw `ln` call outside the helper body fails CI.
 

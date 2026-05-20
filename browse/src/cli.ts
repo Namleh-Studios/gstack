@@ -522,8 +522,8 @@ let _globalFlags: GlobalFlags | null = null;
 
 /** Check if ngrok is installed and authenticated (native config or gstack env). */
 function isNgrokAvailable(): boolean {
-  // Check gstack's own ngrok env
-  const ngrokEnvPath = path.join(process.env.HOME || '/tmp', '.gstack', 'ngrok.env');
+  // Check the active gstack profile's ngrok env.
+  const ngrokEnvPath = path.join(config.stateDir, 'ngrok.env');
   if (fs.existsSync(ngrokEnvPath)) return true;
 
   // Check NGROK_AUTHTOKEN env var
@@ -735,13 +735,14 @@ export function extractGlobalFlags(rawArgs: string[], env: NodeJS.ProcessEnv): G
 async function handlePairAgent(state: ServerState, args: string[]): Promise<void> {
   const clientName = parseFlag(args, '--client') || `remote-${Date.now()}`;
   const domains = parseFlag(args, '--domain')?.split(',').map(d => d.trim());
-  const control = hasFlag(args, '--control') || hasFlag(args, '--admin');
+  const admin = hasFlag(args, '--admin') || hasFlag(args, '--control');
+  const control = hasFlag(args, '--control');
   const restrict = parseFlag(args, '--restrict');
   const localHost = parseFlag(args, '--local');
 
   // Call POST /pair to create a setup key
-  // Default: full access (read+write+admin+meta). --control adds browser-wide ops.
-  // --restrict limits: --restrict read (read-only), --restrict "read,write" (no admin)
+  // Default: read+write. --admin adds page JS/cookies/storage; --control also
+  // adds browser-wide ops. --restrict limits: --restrict read (read-only).
   const pairResp = await fetch(`http://127.0.0.1:${state.port}/pair`, {
     method: 'POST',
     headers: {
@@ -751,6 +752,7 @@ async function handlePairAgent(state: ServerState, args: string[]): Promise<void
     body: JSON.stringify({
       domains,
       clientId: clientName,
+      admin,
       control,
       ...(restrict ? { scopes: restrict.split(',').map(s => s.trim()) } : {}),
     }),
@@ -777,7 +779,7 @@ async function handlePairAgent(state: ServerState, args: string[]): Promise<void
     // Server already verified the tunnel is alive, but double-check from CLI side
     // in case of race condition between server probe and our request
     try {
-      const cliProbe = await fetch(`${pairData.tunnel_url}/health`, {
+      const cliProbe = await fetch(`${pairData.tunnel_url}/connect`, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
         signal: AbortSignal.timeout(5000),
       });

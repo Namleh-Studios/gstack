@@ -4,9 +4,13 @@ import { getHostConfig } from '../../../hosts/index';
 export function generatePreambleBash(ctx: TemplateContext): string {
   const hostConfig = getHostConfig(ctx.host);
   const stateBootstrap = hostConfig.stateRoot ? `export GSTACK_HOME="$HOME/${hostConfig.stateRoot}"
-` : '';
+${hostConfig.name === 'namleh-codex' ? 'export GSTACK_NAMLEH_PROFILE=1\n' : ''}` : '';
   const stateDir = hostConfig.stateRoot ? '$GSTACK_HOME' : '~/.gstack';
   const learningsRoot = hostConfig.stateRoot ? '$GSTACK_HOME' : '${GSTACK_HOME:-$HOME/.gstack}';
+  const telemetryBootstrap = hostConfig.name === 'namleh-codex'
+    ? '_TEL="off"'
+    : `_TEL=$(${ctx.paths.binDir}/gstack-config get telemetry 2>/dev/null || echo "off")
+[ -z "$_TEL" ] && _TEL="off"`;
   const runtimeRoot = hostConfig.usesEnvVars
     ? `_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 GSTACK_ROOT="$HOME/${hostConfig.globalRoot}"
@@ -14,6 +18,7 @@ GSTACK_ROOT="$HOME/${hostConfig.globalRoot}"
 GSTACK_BIN="$GSTACK_ROOT/bin"
 GSTACK_BROWSE="$GSTACK_ROOT/browse/dist"
 GSTACK_DESIGN="$GSTACK_ROOT/design/dist"
+GSTACK_MAKE_PDF="$GSTACK_ROOT/make-pdf/dist"
 `
     : '';
 
@@ -39,7 +44,7 @@ REPO_MODE=\${REPO_MODE:-unknown}
 echo "REPO_MODE: $REPO_MODE"
 _LAKE_SEEN=$([ -f ${stateDir}/.completeness-intro-seen ] && echo "yes" || echo "no")
 echo "LAKE_INTRO: $_LAKE_SEEN"
-_TEL=$(${ctx.paths.binDir}/gstack-config get telemetry 2>/dev/null || true)
+${telemetryBootstrap}
 _TEL_PROMPTED=$([ -f ${stateDir}/.telemetry-prompted ] && echo "yes" || echo "no")
 _TEL_START=$(date +%s)
 _SESSION_ID="$$-$(date +%s)"

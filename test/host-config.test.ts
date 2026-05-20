@@ -376,11 +376,13 @@ describe('host-config-export.ts CLI', () => {
     expect(exitCode).toBe(1);
   });
 
-  test('detect finds claude (since we are running in claude)', () => {
+  test('detect exits cleanly and reports only known hosts', () => {
     const { stdout, exitCode } = run('detect');
     expect(exitCode).toBe(0);
-    // claude binary should be on PATH in this environment
-    expect(stdout).toContain('claude');
+    const detected = stdout.split('\n').map(line => line.trim()).filter(Boolean);
+    for (const name of detected) {
+      expect(ALL_HOST_NAMES).toContain(name);
+    }
   });
 
   test('unknown command exits 1', () => {

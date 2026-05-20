@@ -1,6 +1,8 @@
 import type { TemplateContext } from '../types';
 
 export function generateRoutingInjection(ctx: TemplateContext): string {
+  if (ctx.host === 'namleh-codex') return '';
+
   return `If \`HAS_ROUTING\` is \`no\` AND \`ROUTING_DECLINED\` is \`false\` AND \`PROACTIVE_PROMPTED\` is \`yes\`:
 Check if a CLAUDE.md file exists in the project root. If it does not exist, create it.
 

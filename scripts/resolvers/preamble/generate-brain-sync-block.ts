@@ -30,6 +30,8 @@
 import type { TemplateContext } from '../types';
 
 export function generateBrainSyncBlock(ctx: TemplateContext): string {
+  if (ctx.host === 'namleh-codex') return '';
+
   const isBrainHost = ctx.host === 'gbrain' || ctx.host === 'hermes';
   return `## Artifacts Sync (skill start)
 

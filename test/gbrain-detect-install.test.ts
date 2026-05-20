@@ -25,7 +25,15 @@ const INSTALL = path.join(ROOT, 'bin', 'gstack-gbrain-install');
 // dirs — this keeps `gbrain` out of PATH deterministically across dev machines
 // while still finding jq, git, curl, sed, cat, etc. Each test can prepend a
 // fake-gbrain dir when it wants to simulate presence.
-const SAFE_PATH = '/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin';
+const SAFE_PATH = [
+  path.dirname(process.execPath),
+  '/usr/bin',
+  '/bin',
+  '/usr/sbin',
+  '/sbin',
+  '/opt/homebrew/bin',
+  '/usr/local/bin',
+].join(':');
 
 let tmpHome: string;
 let tmpHomeReal: string;
@@ -38,7 +46,9 @@ function run(bin: string, args: string[], opts: RunOpts = {}) {
     HOME: tmpHomeReal,
     ...(opts.env || {}),
   };
-  const res = spawnSync(bin, args, {
+  const command = bin === DETECT ? process.execPath : bin;
+  const commandArgs = bin === DETECT ? ['run', bin, ...args] : args;
+  const res = spawnSync(command, commandArgs, {
     env,
     cwd: opts.cwd,
     encoding: 'utf-8',

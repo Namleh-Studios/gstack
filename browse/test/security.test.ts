@@ -358,10 +358,14 @@ describe('resolveBashBinary', () => {
     expect(out).toBe(fake);
   });
 
-  test('returns null when nothing resolves (override is unset and PATH is empty)', () => {
-    // Empty PATH means Bun.which finds nothing.
+  test('empty PATH falls back to common POSIX bash paths', () => {
     const out = resolveBashBinary({ PATH: '' });
-    expect(out).toBeNull();
+    if (process.platform === 'win32') {
+      expect(out).toBeNull();
+    } else {
+      expect(out).toBeTruthy();
+      expect(out!.endsWith('bash')).toBe(true);
+    }
   });
 });
 

@@ -145,7 +145,6 @@ async function runArm(
           allowedTools: fixture.allowedTools ?? ['Read', 'Glob', 'Grep', 'Bash'],
           permissionMode: 'bypassPermissions',
           settingSources: [],
-          env: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '' },
           pathToClaudeCodeExecutable: claudeBinary ?? undefined,
           testName: `${fixture.id}-${arm}-${n}`,
           runId,

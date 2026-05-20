@@ -401,15 +401,18 @@ const check = await openai.chat.completions.create({
 **Codex OAuth tokens DO NOT work for image generation.** Tested 2026-03-26: both the Images API and Responses API reject `~/.codex/auth.json` access_token with "Missing scopes: api.model.images.request". Codex CLI also has no native imagegen capability.
 
 **Auth resolution order:**
-1. Read `~/.gstack/openai.json` → `{ "api_key": "sk-..." }` (file permissions 0600)
+1. Read `$GSTACK_HOME/openai.json` or `~/.gstack/openai.json` (file permissions 0600)
 2. Fall back to `OPENAI_API_KEY` environment variable
 3. If neither exists → guided setup flow:
    - Tell user: "Design mockups need an OpenAI API key with image generation permissions. Get one at platform.openai.com/api-keys"
    - Prompt user to paste the key
-   - Write to `~/.gstack/openai.json` with 0600 permissions
+   - Write to the gstack state auth file with 0600 permissions
    - Run a smoke test (generate a 1024x1024 test image) to verify the key works
    - If smoke test passes, proceed. If it fails, show the error and fall back to DESIGN_SKETCH.
 4. If auth exists but API call fails → fall back to DESIGN_SKETCH (existing HTML wireframe approach). Design mockups are a progressive enhancement, never a hard requirement.
+
+Namleh profile override: do not store API keys in gstack state. Inject the key
+from the approved secret source for the command process.
 
 **New command:** `$D setup` — guided API key setup + smoke test. Can be run anytime to update the key.
 
@@ -502,7 +505,7 @@ The design binary is compiled and distributed alongside the browse binary:
 
 ### Commit 1: Design binary core (generate + check + compare)
 - `design/src/` with cli.ts, commands.ts, generate.ts, check.ts, brief.ts, session.ts, compare.ts
-- Auth module (read ~/.gstack/openai.json, fallback to env var, guided setup flow)
+- Auth module (state auth file, process env fallback, guided setup flow; Namleh profile disables local key storage)
 - `compare` command generates HTML comparison board with per-variant feedback textareas
 - `package.json` build command (separate `bun build --compile` from browse)
 - `setup` script integration (including Codex + Kiro asset linking)

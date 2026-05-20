@@ -652,21 +652,21 @@ export class BrowserManager {
     const tabId = id ?? this.activeTabId;
     const page = this.pages.get(tabId);
     if (!page) throw new Error(`Tab ${tabId} not found`);
+    const wasActive = tabId === this.activeTabId;
 
     await page.close();
     this.pages.delete(tabId);
     this.tabSessions.delete(tabId);
     this.tabOwnership.delete(tabId);
 
-    // Switch to another tab if we closed the active one
-    if (tabId === this.activeTabId) {
-      const remaining = [...this.pages.keys()];
-      if (remaining.length > 0) {
-        this.activeTabId = remaining[remaining.length - 1];
-      } else {
-        // No tabs left — create a new blank one
-        await this.newTab();
-      }
+    const remaining = [...this.pages.keys()];
+    if (remaining.length === 0) {
+      await this.newTab();
+      return;
+    }
+
+    if (wasActive || !this.pages.has(this.activeTabId)) {
+      this.activeTabId = remaining[remaining.length - 1];
     }
   }
 

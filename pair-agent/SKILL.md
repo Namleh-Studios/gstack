@@ -44,7 +44,8 @@ REPO_MODE=${REPO_MODE:-unknown}
 echo "REPO_MODE: $REPO_MODE"
 _LAKE_SEEN=$([ -f ~/.gstack/.completeness-intro-seen ] && echo "yes" || echo "no")
 echo "LAKE_INTRO: $_LAKE_SEEN"
-_TEL=$(~/.claude/skills/gstack/bin/gstack-config get telemetry 2>/dev/null || true)
+_TEL=$(~/.claude/skills/gstack/bin/gstack-config get telemetry 2>/dev/null || echo "off")
+[ -z "$_TEL" ] && _TEL="off"
 _TEL_PROMPTED=$([ -f ~/.gstack/.telemetry-prompted ] && echo "yes" || echo "no")
 _TEL_START=$(date +%s)
 _SESSION_ID="$$-$(date +%s)"
@@ -923,23 +924,10 @@ Then tell the user:
 "Copy the block above and paste it into your other agent's chat. The setup key
 expires in 5 minutes."
 
-**If ngrok is installed but NOT authed:** Walk the user through authentication:
-
-Tell the user:
-"ngrok is installed but not logged in. Let's fix that:
-
-1. Go to https://dashboard.ngrok.com/get-started/your-authtoken
-2. Copy your auth token
-3. Come back here and I'll run the auth command for you."
-
-STOP here and wait for the user to provide their auth token.
-
-When they provide it, run:
-```bash
-ngrok config add-authtoken THEIR_TOKEN
-```
-
-Then retry `$B pair-agent --client TARGET_HOST`.
+**If ngrok is installed but NOT authed:** Tell the user to configure the ngrok
+auth token out of band using the approved secret source for their environment.
+Do not ask them to paste the token into chat. After they confirm it is configured,
+retry `$B pair-agent --client TARGET_HOST`.
 
 **If ngrok is NOT installed:** Walk the user through installation:
 
@@ -951,7 +939,7 @@ browser to the internet securely).
 2. Install ngrok:
    - macOS: `brew install ngrok`
    - Linux: `snap install ngrok` or download from ngrok.com/download
-3. Auth it: `ngrok config add-authtoken YOUR_TOKEN`
+3. Auth it out of band using the approved secret source for your environment
    (get your token from https://dashboard.ngrok.com/get-started/your-authtoken)
 4. Come back here and run `/pair-agent` again."
 

@@ -165,7 +165,7 @@ Each agent owns the tabs it creates. Rules:
 ## Security Model
 
 - **Physical port separation.** Local listener and tunnel listener are separate TCP sockets. ngrok only forwards the tunnel port. Tunnel callers cannot reach bootstrap endpoints at all (404, wrong port).
-- **Tunnel command allowlist.** `/command` over the tunnel only accepts 26 browser-driving commands (goto, click, fill, snapshot, text, newtab, tabs, back, forward, reload, closetab, etc.). Server-management commands (tunnel, pair, token, useragent, js) are denied on the tunnel.
+- **Tunnel command allowlist.** `/command` over the tunnel only accepts browser-driving commands (goto, click, fill, snapshot, text, newtab, tabs, back, forward, reload, closetab, etc.). Server-management commands (tunnel, pair, token, useragent, js) are denied on the tunnel. `eval` remains behind admin scope.
 - **Root token is tunnel-blocked.** A request bearing the root token over the tunnel listener returns 403 with a pairing hint. Only scoped session tokens work over the tunnel.
 - **Setup keys** expire in 5 minutes and can only be used once.
 - **Session tokens** expire in 24 hours (configurable).
@@ -198,7 +198,7 @@ For remote agents on different machines:
 
 1. Sign up at [ngrok.com](https://ngrok.com) (free tier works)
 2. Copy your auth token from the dashboard
-3. Save it: `echo 'NGROK_AUTHTOKEN=your_token' > ~/.gstack/ngrok.env`
-4. Optionally claim a stable domain: `echo 'NGROK_DOMAIN=your-name.ngrok-free.dev' >> ~/.gstack/ngrok.env`
+3. Save it in the active profile state directory, for example: `printf '%s\n' 'NGROK_AUTHTOKEN=your_token' > "$GSTACK_HOME/ngrok.env"`
+4. Optionally claim a stable domain: `printf '%s\n' 'NGROK_DOMAIN=your-name.ngrok-free.dev' >> "$GSTACK_HOME/ngrok.env"`
 5. Start with tunnel: `BROWSE_TUNNEL=1 $B restart`
 6. Run `$B pair-agent` — it will use the tunnel URL automatically

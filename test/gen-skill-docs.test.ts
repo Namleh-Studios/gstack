@@ -2120,8 +2120,17 @@ describe('Parameterized host smoke tests', () => {
         }
       });
 
-      test('generates Claude outside-voice skill for external hosts', () => {
+      test('generates Claude outside-voice skill when included for external hosts', () => {
         const skillMd = path.join(hostDir, 'gstack-claude', 'SKILL.md');
+        const includesClaude =
+          !hostConfig.generation.skipSkills?.includes('claude') &&
+          (!hostConfig.generation.includeSkills ||
+            hostConfig.generation.includeSkills.length === 0 ||
+            hostConfig.generation.includeSkills.includes('claude'));
+        if (!includesClaude) {
+          expect(fs.existsSync(skillMd)).toBe(false);
+          return;
+        }
         expect(fs.existsSync(skillMd)).toBe(true);
         const content = fs.readFileSync(skillMd, 'utf-8');
         expect(content).toContain('claude -p');

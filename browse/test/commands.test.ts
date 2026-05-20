@@ -725,7 +725,7 @@ describe('CLI lifecycle', () => {
     }
     cliEnv.BROWSE_STATE_FILE = stateFile;
     const result = await new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
-      const proc = spawn('bun', ['run', cliPath, 'status'], {
+      const proc = spawn(process.execPath, ['run', cliPath, 'status'], {
         timeout: 15000,
         env: cliEnv,
       });
@@ -858,8 +858,13 @@ describe('CircularBuffer', () => {
 // ─── Dialog Handling ─────────────────────────────────────────
 
 describe('Dialog handling', () => {
-  test('alert does not hang — auto-accepted', async () => {
+  async function gotoFreshDialogPage() {
+    await bm.newTab();
     await handleWriteCommand('goto', [baseUrl + '/dialog.html'], bm);
+  }
+
+  test('alert does not hang — auto-accepted', async () => {
+    await gotoFreshDialogPage();
     await handleWriteCommand('click', ['#alert-btn'], bm);
     // If we get here, dialog was handled (no hang)
     const result = await handleReadCommand('dialog', [], bm);
@@ -869,7 +874,7 @@ describe('Dialog handling', () => {
   });
 
   test('confirm is auto-accepted by default', async () => {
-    await handleWriteCommand('goto', [baseUrl + '/dialog.html'], bm);
+    await gotoFreshDialogPage();
     await handleWriteCommand('click', ['#confirm-btn'], bm);
     // Wait for DOM update
     await new Promise(r => setTimeout(r, 100));
@@ -881,7 +886,7 @@ describe('Dialog handling', () => {
     const setResult = await handleWriteCommand('dialog-dismiss', [], bm);
     expect(setResult).toContain('dismissed');
 
-    await handleWriteCommand('goto', [baseUrl + '/dialog.html'], bm);
+    await gotoFreshDialogPage();
     await handleWriteCommand('click', ['#confirm-btn'], bm);
     await new Promise(r => setTimeout(r, 100));
     const result = await handleReadCommand('js', ['document.querySelector("#confirm-result").textContent'], bm);
@@ -895,7 +900,7 @@ describe('Dialog handling', () => {
     const setResult = await handleWriteCommand('dialog-accept', ['TestUser'], bm);
     expect(setResult).toContain('TestUser');
 
-    await handleWriteCommand('goto', [baseUrl + '/dialog.html'], bm);
+    await gotoFreshDialogPage();
     await handleWriteCommand('click', ['#prompt-btn'], bm);
     await new Promise(r => setTimeout(r, 100));
     const result = await handleReadCommand('js', ['document.querySelector("#prompt-result").textContent'], bm);

@@ -594,19 +594,13 @@ export async function handleWriteCommand(
       const [selector, ...filePaths] = args;
       if (!selector || filePaths.length === 0) throw new Error('Usage: browse upload <selector> <file1> [file2...]');
 
-      // Validate paths are within safe directories (same check as cookie-import)
+      // Validate paths are within safe directories (same canonical realpath
+      // policy as cookie-import/eval, including symlink escape protection).
       for (const fp of filePaths) {
+        validateReadPath(path.resolve(fp));
         if (!fs.existsSync(fp)) throw new Error(`File not found: ${fp}`);
-        if (path.isAbsolute(fp)) {
-          let resolvedFp: string;
-          try { resolvedFp = fs.realpathSync(path.resolve(fp)); } catch (err: any) { if (err?.code !== 'ENOENT') throw err; resolvedFp = path.resolve(fp); }
-          if (!SAFE_DIRECTORIES.some(dir => isPathWithin(resolvedFp, dir))) {
-            throw new Error(`Path must be within: ${SAFE_DIRECTORIES.join(', ')}`);
-          }
-        }
-        if (path.normalize(fp).includes('..')) {
-          throw new Error('Path traversal sequences (..) are not allowed');
-        }
+        const stat = fs.statSync(fp);
+        if (!stat.isFile()) throw new Error(`Upload path is not a regular file: ${fp}`);
       }
 
       const resolved = await session.resolveRef(selector);

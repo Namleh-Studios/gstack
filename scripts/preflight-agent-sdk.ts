@@ -70,7 +70,6 @@ async function main() {
           settingSources: [],
           maxTurns: 1,
           pathToClaudeCodeExecutable: claudePath ?? undefined,
-          env: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY },
         },
       });
       for await (const ev of q) events.push(ev);

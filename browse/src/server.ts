@@ -300,7 +300,7 @@ export function canDispatchOverTunnel(command: string | undefined | null): boole
 }
 
 /**
- * Read ngrok authtoken from env var, ~/.gstack/ngrok.env, or ngrok's native
+ * Read ngrok authtoken from env var, GSTACK_HOME/ngrok.env, or ngrok's native
  * config files.  Returns null if nothing found.  Shared between the
  * /tunnel/start handler and the BROWSE_TUNNEL=1 auto-start flow.
  */
@@ -309,7 +309,7 @@ function resolveNgrokAuthtoken(): string | null {
   if (authtoken) return authtoken;
 
   const home = process.env.HOME || '';
-  const ngrokEnvPath = path.join(home, '.gstack', 'ngrok.env');
+  const ngrokEnvPath = path.join(config.stateDir, 'ngrok.env');
   if (fs.existsSync(ngrokEnvPath)) {
     try {
       const envContent = fs.readFileSync(ngrokEnvPath, 'utf-8');
@@ -1751,12 +1751,14 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         }
         try {
           const pairBody = await req.json() as any;
-          // Default: full access (read+write+admin+meta). The trust boundary is
-          // the pairing ceremony itself, not the scope. --control adds browser-wide
-          // destructive commands (stop, restart, disconnect). --restrict limits scope.
-          const scopes = pairBody.control || pairBody.admin
-            ? ['read', 'write', 'admin', 'meta', 'control'] as const
-            : (pairBody.scopes || ['read', 'write', 'admin', 'meta']) as const;
+          const requestedScopes = Array.isArray(pairBody.scopes) && pairBody.scopes.length > 0
+            ? pairBody.scopes
+            : ['read', 'write'];
+          const scopes = Array.from(new Set([
+            ...requestedScopes,
+            ...(pairBody.admin || pairBody.control ? ['admin', 'meta'] : []),
+            ...(pairBody.control ? ['control'] : []),
+          ]));
           const setupKey = createSetupKey({
             clientId: pairBody.clientId,
             scopes: [...scopes],
@@ -1842,7 +1844,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         if (!authtoken) {
           return new Response(JSON.stringify({
             error: 'No ngrok authtoken found',
-            hint: 'Run: ngrok config add-authtoken YOUR_TOKEN',
+            hint: `Run: ngrok config add-authtoken YOUR_TOKEN or store NGROK_AUTHTOKEN in ${config.stateDir}/ngrok.env`,
           }), { status: 400, headers: { 'Content-Type': 'application/json' } });
         }
 
@@ -2621,7 +2623,7 @@ export async function start() {
   if (process.env.BROWSE_TUNNEL === '1') {
     const authtoken = resolveNgrokAuthtoken();
     if (!authtoken) {
-      console.error('[browse] BROWSE_TUNNEL=1 but no NGROK_AUTHTOKEN found. Set it via env var or ~/.gstack/ngrok.env');
+      console.error(`[browse] BROWSE_TUNNEL=1 but no NGROK_AUTHTOKEN found. Set it via env var or ${config.stateDir}/ngrok.env`);
     } else {
       let boundTunnel: ReturnType<typeof Bun.serve> | null = null;
       try {

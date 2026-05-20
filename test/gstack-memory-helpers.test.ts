@@ -11,7 +11,7 @@
  * Free-tier (~50ms total). Runs in `bun test`.
  */
 
-import { describe, it, expect, beforeEach, afterAll } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync, mkdirSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -217,9 +217,10 @@ describe("withErrorContext", () => {
     process.env.GSTACK_HOME = testHome;
   });
 
-  afterAll(() => {
+  afterEach(() => {
     if (savedHome === undefined) delete process.env.GSTACK_HOME;
     else process.env.GSTACK_HOME = savedHome;
+    rmSync(testHome, { recursive: true, force: true });
   });
 
   it("returns the value on success and writes an ok entry", async () => {
@@ -293,7 +294,7 @@ describe("detectEngineTier", () => {
     process.env.HOME = testHome;
   });
 
-  afterAll(() => {
+  afterEach(() => {
     if (savedHome === undefined) delete process.env.GSTACK_HOME;
     else process.env.GSTACK_HOME = savedHome;
     if (savedGbrainHome === undefined) delete process.env.GBRAIN_HOME;
@@ -302,6 +303,8 @@ describe("detectEngineTier", () => {
     else process.env.HOME = savedRealHome;
     if (savedPath === undefined) delete process.env.PATH;
     else process.env.PATH = savedPath;
+    rmSync(testHome, { recursive: true, force: true });
+    rmSync(testGbrainHome, { recursive: true, force: true });
   });
 
   it("returns a valid EngineDetect shape (engine, detected_at, schema_version)", () => {

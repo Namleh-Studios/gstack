@@ -81,7 +81,7 @@ async function spawnDaemonWithTunnel(): Promise<DaemonHandle> {
   const localPort = 30000 + Math.floor(Math.random() * 30000);
   const attemptsLogPath = path.join(fakeHome, '.gstack', 'security', 'attempts.jsonl');
 
-  const proc = Bun.spawn(['bun', 'run', SERVER_ENTRY], {
+  const proc = Bun.spawn([process.execPath, 'run', SERVER_ENTRY], {
     cwd: ROOT,
     env: {
       ...process.env,

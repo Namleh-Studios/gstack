@@ -7,7 +7,7 @@
  *
  * Flow:
  *   1. Parse command + flags from argv
- *   2. Resolve auth (~/. gstack/openai.json → OPENAI_API_KEY → guided setup)
+ *   2. Resolve auth (state config → OPENAI_API_KEY → guided setup)
  *   3. Execute command (API call → write PNG/HTML)
  *   4. Print result JSON to stdout
  */
@@ -18,7 +18,7 @@ import { checkCommand } from "./check";
 import { compare } from "./compare";
 import { variants } from "./variants";
 import { iterate } from "./iterate";
-import { resolveApiKey, saveApiKey } from "./auth";
+import { isNamlehProfile, resolveApiKey, saveApiKey } from "./auth";
 import { extractDesignLanguage, updateDesignMd } from "./memory";
 import { diffMockups, verifyAgainstMockup } from "./diff";
 import { evolve } from "./evolve";
@@ -60,12 +60,22 @@ function printUsage(): void {
     console.log(`  ${name.padEnd(12)} ${info.description}`);
     console.log(`  ${"".padEnd(12)} ${info.usage}`);
   }
-  console.log("\nAuth: ~/.gstack/openai.json, then OPENAI_API_KEY env var");
-  console.log("If OPENAI_API_KEY matches a current-directory .env file, the source is reported before billing.");
-  console.log("Setup: $D setup");
+  if (isNamlehProfile()) {
+    console.log("\nAuth: inject OPENAI_API_KEY from the approved Namleh secret source for the command process.");
+  } else {
+    console.log("\nAuth: $GSTACK_HOME/openai.json or ~/.gstack/openai.json, then OPENAI_API_KEY env var");
+    console.log("If OPENAI_API_KEY matches a current-directory .env file, the source is reported before billing.");
+    console.log("Setup: $D setup");
+  }
 }
 
 async function runSetup(): Promise<void> {
+  if (isNamlehProfile()) {
+    console.error("Namleh profile does not save API keys locally.");
+    console.error("Inject OPENAI_API_KEY from the approved secret source for the command process.");
+    process.exit(1);
+  }
+
   const existing = resolveApiKey();
   if (existing) {
     console.log("Existing API key found. Running smoke test...");
@@ -87,7 +97,7 @@ async function runSetup(): Promise<void> {
     }
 
     saveApiKey(key);
-    console.log("Key saved to ~/.gstack/openai.json (0600 permissions).");
+    console.log("Key saved to gstack state auth file (0600 permissions).");
   }
 
   // Smoke test
