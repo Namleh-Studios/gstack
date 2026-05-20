@@ -72,6 +72,11 @@ function externalSkillName(skillDir: string, frontmatterName?: string, prefix = 
   if (skillDir === '.' || skillDir === '') return prefix;
   // Use frontmatter name when it differs from directory name (e.g., run-tests/ with name: test)
   let baseName = frontmatterName && frontmatterName !== skillDir ? frontmatterName : skillDir;
+  // Namleh-only source dirs keep their source namespace while generated Codex
+  // skills use the host prefix: namleh-ops-product -> namleh-gstack-ops-product.
+  if (prefix.startsWith('namleh-') && baseName.startsWith('namleh-')) {
+    baseName = baseName.slice('namleh-'.length);
+  }
   if (baseName === prefix || baseName.startsWith(`${prefix}-`)) return baseName;
   // Don't double-prefix existing gstack names for the stock prefix. For custom
   // prefixes, strip the stock prefix so gstack-upgrade becomes namleh-gstack-upgrade.
@@ -501,6 +506,15 @@ function findTemplates(): string[] {
   return discoverTemplates(ROOT).map(t => path.join(ROOT, t.tmpl));
 }
 
+function isNamlehOnlySkillDir(dir: string): boolean {
+  return dir.startsWith('namleh-');
+}
+
+function canGenerateNamlehOnlySkill(hostConfig: HostConfig): boolean {
+  return hostConfig.name.startsWith('namleh-') ||
+    Boolean(hostConfig.generation.externalSkillPrefix?.startsWith('namleh-'));
+}
+
 const ALL_HOSTS: Host[] = ALL_HOST_NAMES as Host[];
 const hostsToRun: Host[] = HOST_ARG_VAL === 'all' ? ALL_HOSTS : [HOST];
 const failures: { host: string; error: Error }[] = [];
@@ -515,6 +529,13 @@ for (const currentHost of hostsToRun) {
     const currentHostConfig = getHostConfig(currentHost);
     for (const tmplPath of findTemplates()) {
       const dir = path.basename(path.dirname(tmplPath));
+
+      // Namleh source skills are first-party company workflow agents. Keep them
+      // out of stock gstack host outputs unless the host profile is explicitly
+      // Namleh-flavored.
+      if (isNamlehOnlySkillDir(dir) && !canGenerateNamlehOnlySkill(currentHostConfig)) {
+        continue;
+      }
 
       // includeSkills allowlist (union logic: include minus skip)
       if (currentHostConfig.generation.includeSkills?.length) {

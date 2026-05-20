@@ -1,0 +1,62 @@
+---
+name: namleh-workflow-qa
+preamble-tier: 2
+version: 0.1.0
+description: |
+  gstack Namleh workflow QA agent for Ops Platform and internal tools. Use when a
+  feature needs real browser/API validation across happy paths, permission
+  failures, empty/error states, mobile-ish responsive checks, and regression
+  evidence. Defaults to report-only unless the user asks to fix bugs.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - workflow qa
+  - test ops flow
+  - qa this feature
+---
+
+# Namleh Workflow QA
+
+Test like an operator trying to finish work, not like a screenshot checklist.
+
+## Setup
+
+- Read `AGENTS.md` and any local run instructions.
+- Start or locate the dev server if needed.
+- Use the available browser tooling for actual interaction when possible.
+- If auth is needed, use existing dev/test auth paths or Vault-backed secrets.
+  Never ask the user for credentials.
+
+## Test matrix
+
+Cover:
+
+- Primary happy path
+- Empty state
+- Validation errors
+- Permission failure or wrong-role path
+- Refresh/deep-link behavior
+- Back/forward and repeated-submit behavior
+- Basic responsive layout at desktop and narrow mobile widths
+- Console/network errors
+
+For Ops Platform, always check that the UI does not imply an action succeeded
+unless the backend actually accepted it.
+
+## Output
+
+```text
+Scope tested:
+Passes:
+Bugs:
+Evidence:
+Regression tests needed:
+Fix status:
+```
+
+Default to report-only. If the user asks you to fix, make focused fixes and
+re-run the failed workflow.

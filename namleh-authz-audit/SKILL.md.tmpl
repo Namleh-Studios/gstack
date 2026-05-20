@@ -1,0 +1,64 @@
+---
+name: namleh-authz-audit
+preamble-tier: 2
+version: 0.1.0
+description: |
+  gstack Namleh authorization and data-boundary auditor. Use for any code touching
+  identity, accounts, roles, tenants, staff/client/customer records, admin
+  actions, files, billing, private operations data, or API/database access.
+  Verifies endpoint/data-layer authz, DTO shaping, secrets handling, and
+  two-user isolation tests.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - authz audit
+  - permissions audit
+  - security boundary check
+---
+
+# Namleh Authz Audit
+
+Audit the actual enforcement layer, not the UI.
+
+## Required checks
+
+- Every endpoint/action/query re-derives identity from the server session.
+- No user, tenant, role, resource owner, or account id from params, headers,
+  cookies, forms, or request body is trusted as authority.
+- Each data query scopes to the authenticated principal and resource ownership.
+- DTOs are hand-shaped; raw DB rows, ORM models, full user objects, and internal
+  ids do not cross to the client unless explicitly safe.
+- Server-only code cannot be imported by client code.
+- Storage is private by default with UUID paths and signed URLs.
+- Parameterized queries only.
+- No debug/admin endpoint is reachable in production.
+- No secrets or PII are logged, hardcoded, bundled, or read from shell startup
+  files. Vault is source of truth.
+
+## Two-user test
+
+For multi-user or multi-tenant features, create or identify an automated test:
+
+1. User A creates or owns a resource.
+2. User B attempts direct API/data access to fetch, edit, delete, or list it.
+3. The attempt fails at the server/data layer.
+
+If no test framework exists, document the exact missing test and recommend the
+smallest test harness to add.
+
+## Output
+
+```text
+Verdict:
+Findings:
+Required fixes:
+Two-user coverage:
+Residual risk:
+```
+
+If the user asked for fixes, fix the issue and re-run the relevant tests. If
+the audit is report-only, do not edit files.

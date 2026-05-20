@@ -85,7 +85,10 @@ const ALL_SKILLS = (() => {
   return skills;
 })();
 
-const CLAUDE_SKIPPED_SKILL_DIRS = new Set(['claude']);
+const CLAUDE_SKIPPED_SKILL_DIRS = new Set([
+  'claude',
+  ...ALL_SKILLS.filter(skill => skill.dir.startsWith('namleh-')).map(skill => skill.dir),
+]);
 const CLAUDE_GENERATED_SKILLS = ALL_SKILLS.filter(skill => !CLAUDE_SKIPPED_SKILL_DIRS.has(skill.dir));
 
 describe('gen-skill-docs', () => {
@@ -1629,6 +1632,7 @@ describe('Codex generation (--host codex)', () => {
     }
     for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
       if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      if (entry.name.startsWith('namleh-')) continue;
       if (entry.name === 'codex') continue; // /codex is excluded from Codex output
       if (!fs.existsSync(path.join(ROOT, entry.name, 'SKILL.md.tmpl'))) continue;
       const codexName = entry.name.startsWith('gstack-') ? entry.name : `gstack-${entry.name}`;
@@ -1948,6 +1952,7 @@ describe('Factory generation (--host factory)', () => {
     }
     for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
       if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      if (entry.name.startsWith('namleh-')) continue;
       if (entry.name === 'codex') continue;
       if (!fs.existsSync(path.join(ROOT, entry.name, 'SKILL.md.tmpl'))) continue;
       const factoryName = entry.name.startsWith('gstack-') ? entry.name : `gstack-${entry.name}`;

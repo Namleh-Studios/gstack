@@ -499,6 +499,20 @@ describe('host config correctness', () => {
     expect(namlehCodex.operatingInstructions).toContain('credentials in Vault');
   });
 
+  test('namleh-codex includes Namleh workflow agents', () => {
+    for (const skill of [
+      'gstack',
+      'namleh-ops-autopilot',
+      'namleh-ops-product',
+      'namleh-ops-architect',
+      'namleh-authz-audit',
+      'namleh-workflow-qa',
+      'namleh-release-captain',
+    ]) {
+      expect(namlehCodex.generation.includeSkills).toContain(skill);
+    }
+  });
+
   test('openclaw has tool rewrites for exec/read/write', () => {
     expect(openclaw.toolRewrites).toBeDefined();
     expect(openclaw.toolRewrites!['use the Bash tool']).toBe('use the exec tool');

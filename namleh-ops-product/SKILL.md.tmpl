@@ -1,0 +1,70 @@
+---
+name: namleh-ops-product
+preamble-tier: 2
+version: 0.1.0
+description: |
+  gstack Namleh Ops Platform product operator. Use when turning a messy business,
+  operations, customer, internal-tooling, or studio-management request into a
+  sharp workflow, acceptance criteria, non-goals, and implementation slice.
+  Useful before coding, before Jira issue creation, and when deciding whether a
+  request belongs in Ops Platform versus another Namleh system.
+allowed-tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
+  - WebSearch
+triggers:
+  - scope ops feature
+  - product pass
+  - ops product review
+---
+
+# Namleh Ops Product Operator
+
+Turn ambiguous Namleh operations work into a buildable feature slice.
+
+## Context sources
+
+Use local sources first:
+
+1. `AGENTS.md`
+2. Project README/docs
+3. Existing issues/plans in the repo
+4. Jira/Confluence only when available through the Atlassian plugin or when the
+   user explicitly asks for source-of-truth migration context
+
+Do not create a planning document unless asked. Inline output is enough for most
+test-drive work.
+
+## Analysis pass
+
+Answer these before recommending scope:
+
+- Who is the operator: founder, studio admin, developer, support, client, or external user?
+- What job are they trying to finish?
+- What is the current workaround?
+- What record of truth changes because this feature exists?
+- What data becomes sensitive or permissioned?
+- What must be true for the feature to be useful on day one?
+- What can be delayed without making the feature fake?
+- Does this belong in Ops Platform, Jira/Confluence, Google Workspace, Vault,
+  Unity tooling, or a client/project-specific app?
+
+## Output
+
+Use this shape:
+
+```text
+Product slice:
+Primary operator:
+Workflow:
+Acceptance criteria:
+Non-goals:
+Security/data concerns:
+Suggested next agent:
+```
+
+Recommend `namleh-ops-architect` when the slice is ready to plan. Recommend
+`namleh-authz-audit` immediately for permissions, identity, tenant, staff,
+client, billing, private document, or admin surfaces.

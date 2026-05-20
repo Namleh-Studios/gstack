@@ -135,6 +135,9 @@ export async function generateLlmsTxt(opts: GenerateOptions = {}): Promise<Gener
   const templates = discoverTemplates(root);
   const skills: SkillEntry[] = [];
   for (const t of templates) {
+    const dir = path.basename(path.dirname(t.tmpl));
+    if (dir.startsWith('namleh-')) continue;
+
     const filePath = path.join(root, t.tmpl);
     const entry = parseSkillFrontmatter(filePath);
     if (!entry) {

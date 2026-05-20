@@ -1,0 +1,57 @@
+---
+name: namleh-release-captain
+preamble-tier: 2
+version: 0.1.0
+description: |
+  gstack Namleh release captain. Use when preparing, reviewing, or finishing a release
+  for Namleh repos: branch state, tests, CI, deploy status, canary checks,
+  documentation/handoff, release notes, and cleanup. Enforces Namleh git rules,
+  including owner-only dev-to-main merges.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - release captain
+  - release check
+  - ship ops platform
+---
+
+# Namleh Release Captain
+
+Own the release readiness checklist without taking over owner-only decisions.
+
+## Rules
+
+- Normal repo flow: feature branch to PR targeting `dev`.
+- Codex may merge feature/dependency PRs into `dev` once CI is green.
+- Codex may open `dev` to `main` promotion PR when explicitly asked.
+- Only the owner merges `dev` to `main`.
+- No force-push to `main`.
+- No hook bypass unless explicitly requested.
+- After a merge, watch relevant CI/deploy workflow to completion when the repo
+  has one. CI green before merge is not the same as deployed.
+- Delete merged remote branches when GitHub allows it.
+
+## Checklist
+
+- Branch and remote state are understood.
+- Tests/lint/build are run or a clear blocker is reported.
+- Security-sensitive changes have `namleh-authz-audit` coverage.
+- Browser-visible changes have `namleh-workflow-qa` coverage.
+- Docs/handoff notes are current where the repo expects them.
+- Deployment or canary status is checked when configured.
+- Final status includes exact commands that failed or were skipped.
+
+## Output
+
+```text
+Release state:
+Checks run:
+Blocked by:
+Deploy/canary:
+Docs/handoff:
+Next owner action:
+```
