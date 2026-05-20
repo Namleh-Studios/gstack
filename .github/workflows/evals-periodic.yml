@@ -14,7 +14,7 @@ env:
 
 jobs:
   build-image:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, home-lab, docker]
     permissions:
       contents: read
       packages: write
@@ -58,7 +58,7 @@ jobs:
             ${{ steps.meta.outputs.image }}:latest
 
   evals:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, home-lab, docker]
     needs: build-image
     container:
       image: ${{ needs.build-image.outputs.image-tag }}

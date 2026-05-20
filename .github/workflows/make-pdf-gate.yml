@@ -22,17 +22,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [linux-home-lab]
         # Windows is tolerant-mode — Xpdf / Poppler-Windows extraction
-        # differs enough from the Linux/macOS baseline that the strict
+        # differs enough from the Linux baseline that the strict
         # exact-diff gate is unreliable. Enable once the normalized
         # comparator proves tolerant enough (Codex round 2 #18).
         #
         # include:
-        #   - os: windows-latest
+        #   - os: windows-home-lab
         #     tolerant: true
 
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, Linux, X64, home-lab]
     steps:
       - uses: actions/checkout@v6.0.2
 
@@ -43,12 +43,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install poppler (macOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install poppler
-
       - name: Install poppler-utils (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
 
       - name: Install Playwright Chromium
@@ -56,14 +51,6 @@ jobs:
 
       - name: Build binaries
         run: bun run build
-
-      - name: ad-hoc codesign (Apple Silicon)
-        if: matrix.os == 'macos-latest'
-        run: |
-          for bin in browse/dist/browse browse/dist/find-browse design/dist/design make-pdf/dist/pdf; do
-            codesign --remove-signature "$bin" 2>/dev/null || true
-            codesign -s - -f "$bin" || true
-          done
 
       - name: Log toolchain versions
         run: |

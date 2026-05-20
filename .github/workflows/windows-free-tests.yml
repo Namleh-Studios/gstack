@@ -3,16 +3,14 @@ name: Windows Free Tests
 # Curated subset of the free test suite that runs on a paid faster Windows runner.
 #
 # Codex's v1.18.0.0 review flagged that the existing evals.yml workflow uses
-# a Linux container, so a windows-latest matrix entry there isn't a drop-in.
+# a Linux container, so a Windows runner matrix entry there isn't a drop-in.
 # This workflow is non-container, runs the curated Windows-safe subset, plus
 # targeted resolver tests that exercise the Bun.which-based claude binary
 # resolution + the GSTACK_CLAUDE_BIN override path on Windows.
 #
-# Runner: GitHub-hosted free `windows-latest`. The whole rest of CI runs on
-# Ubicloud (Linux), but Ubicloud doesn't ship Windows runners and we don't
-# want to flip on GitHub's org-level larger-runner billing for just this one
-# job. 4 cores, ~60s spin-up, $0. The wave-coverage tests this runs are
-# small enough that total job time stays under 2 minutes.
+# Runner: Namleh self-hosted Windows homelab runner. The whole rest of CI runs
+# on Linux, and Playwright/Chromium behavior can accidentally mask Windows setup
+# regressions. Keep this as a separate workflow so Windows failures are isolated.
 #
 # What this DOES NOT do (still out of scope, tracked as follow-up):
 #   - Run the full free suite on Windows. The 24 tests that hardcode /bin/sh,
@@ -33,9 +31,7 @@ concurrency:
 
 jobs:
   windows-free-tests:
-    # Ubicloud Windows runner (same provider as the Linux evals workflow).
-    # To revert: swap to `windows-latest` (GitHub's free 4-core Windows runner).
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows, X64, home-lab]
     timeout-minutes: 15
 
     steps:

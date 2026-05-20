@@ -1,7 +1,7 @@
 name: Windows Setup E2E
 
 # End-to-end fresh-install gate for Windows. Runs `./setup` on a clean
-# windows-latest checkout and asserts the build completes, binaries
+# Windows homelab checkout and asserts the build completes, binaries
 # resolve via find-browse, and the gstack-paths state root resolves
 # cleanly. Catches Bun shell-parser regressions in package.json's build
 # chain (#1538, #1537, #1530, #1457, #1561) before they reach users.
@@ -9,7 +9,7 @@ name: Windows Setup E2E
 # Separate from windows-free-tests.yml because that one runs a curated
 # unit-test subset; this one exercises the install path itself.
 #
-# Runner: GitHub-hosted free windows-latest. ~3-5 min total.
+# Runner: Namleh self-hosted Windows homelab runner. ~3-5 min total.
 
 on:
   pull_request:
@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   windows-setup:
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows, X64, home-lab]
     timeout-minutes: 15
 
     steps:

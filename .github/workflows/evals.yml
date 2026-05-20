@@ -14,7 +14,7 @@ env:
 jobs:
   # Build Docker image with pre-baked toolchain (cached — only rebuilds on Dockerfile/lockfile change)
   build-image:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, home-lab, docker]
     permissions:
       contents: read
       packages: write
@@ -58,7 +58,7 @@ jobs:
             ${{ steps.meta.outputs.image }}:latest
 
   evals:
-    runs-on: ${{ matrix.suite.runner || 'ubuntu-latest' }}
+    runs-on: [self-hosted, Linux, X64, home-lab, docker]
     needs: build-image
     container:
       image: ${{ needs.build-image.outputs.image-tag }}
@@ -75,7 +75,6 @@ jobs:
             file: test/skill-llm-eval.test.ts
           - name: e2e-browse
             file: test/skill-e2e-bws.test.ts
-            runner: ubuntu-latest
           - name: e2e-plan
             file: test/skill-e2e-plan.test.ts
           - name: e2e-deploy
@@ -157,7 +156,7 @@ jobs:
           retention-days: 90
 
   report:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, home-lab]
     needs: evals
     if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
@@ -221,7 +220,7 @@ jobs:
           $(echo -e "$SUITE_LINES")
 
           ---
-          *12x ubuntu-latest (Docker: pre-baked toolchain + deps) | wall clock ≈ slowest suite*"
+          *12x home-lab Docker runners (pre-baked toolchain + deps) | wall clock ≈ slowest suite*"
 
           if [ "$FAILED" -gt 0 ]; then
             FAILURES=""
