@@ -22,6 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
+      - id: meta
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/ci"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=$image:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
       # Copy lockfile + package.json into Docker build context
       - run: cp package.json bun.lock .github/docker/
 
@@ -37,5 +43,5 @@ jobs:
           file: .github/docker/Dockerfile.ci
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/ci:latest
-            ghcr.io/${{ github.repository }}/ci:${{ github.sha }}
+            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.sha_tag }}
