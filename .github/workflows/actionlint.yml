@@ -5,4 +5,12 @@ jobs:
     runs-on: [self-hosted, Linux, X64, home-lab]
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: rhysd/actionlint@v1.7.11
+      - name: Install actionlint
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/actionlint
+          curl -fsSL -o /tmp/actionlint/actionlint.tar.gz \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.11/actionlint_1.7.11_linux_amd64.tar.gz
+          tar -xzf /tmp/actionlint/actionlint.tar.gz -C /tmp/actionlint actionlint
+      - name: Run actionlint
+        run: /tmp/actionlint/actionlint -config-file .github/actionlint.yaml
