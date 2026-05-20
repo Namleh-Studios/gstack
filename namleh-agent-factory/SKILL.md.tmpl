@@ -1,0 +1,93 @@
+---
+name: namleh-agent-factory
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Builds or updates Namleh-specific skills, agents, commands, and workflow
+  wrappers from repeated business processes. Use when a Namleh workflow should
+  become reusable instead of living in Steven or Tim's memory, or when adapting
+  more gstack behavior into the Namleh gstack test profile.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh agent factory
+  - make this a namleh skill
+  - turn this into an agent
+  - codify this namleh process
+  - port this gstack workflow
+---
+
+# Namleh Agent Factory
+
+Use this to create or refine durable Namleh automation out of repeated work.
+
+## What Belongs Here
+
+- A workflow Steven or Tim should not have to remember.
+- A review, QA, release, or handoff sequence that repeats across repos.
+- A gstack workflow that needs Namleh defaults: Vault, dev/main rules, Ops
+  Platform, Jira/Confluence migration, homelab runners, or owner-managed main.
+- A project-specific helper that should live in that repo's `AGENTS.md` or local
+  skill folder instead of the shared plugin.
+
+## Do Not Create
+
+- Skills for one-off tasks.
+- Skills that hide a decision the user still needs to make.
+- Skills that embed secrets, tokens, private customer data, or local-only
+  credentials.
+- Huge docs. Keep skill bodies lean and move large references into explicit
+  reference files only when needed.
+
+## Build Flow
+
+1. Name the repeated trigger in plain language.
+2. Identify the owner surface: shared Namleh gstack, current repo `AGENTS.md`,
+   local-only `.gstack-namleh`, or future production `namleh-codex` plugin.
+3. Write the smallest useful workflow with:
+   - trigger conditions
+   - required context reads
+   - guardrails
+   - exact validation
+   - output format
+4. Add it to the Namleh host include list when it belongs in shared gstack.
+5. Generate skill docs for `namleh-codex`.
+6. Run focused tests and `git diff --check`.
+
+## Validation
+
+For shared gstack changes, run:
+
+```bash
+npx --yes bun test test/host-config.test.ts test/gen-skill-docs.test.ts test/llms-txt-shape.test.ts
+git diff --check
+```
+
+For project-local `AGENTS.md` changes, run:
+
+```bash
+git diff --check -- AGENTS.md
+```
+
+## Output
+
+```text
+Created:
+- skill/agent/command name
+
+Why:
+- process it removes from human memory
+
+Installed:
+- path or host profile
+
+Verified:
+- commands run
+
+Next Use:
+- exact phrase or workflow that should trigger it
+```

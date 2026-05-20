@@ -1,0 +1,78 @@
+---
+name: namleh-design-memory
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Captures and applies Namleh gstack UI taste memory. Use when Steven approves or
+  rejects a UI direction, when a design review discovers a reusable preference,
+  or when an Ops Platform/client portal/game screen should be checked against
+  Namleh's accumulated visual and workflow standards.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh design memory
+  - remember this design preference
+  - this feels like namleh
+  - this does not feel like namleh
+  - apply namleh taste
+---
+
+# Namleh Design Memory
+
+Use this to preserve design taste and stop repeating rejected UI patterns.
+
+## Capture When
+
+- Steven says a screen, flow, or mockup is good.
+- Steven rejects a direction or says it feels wrong.
+- A UI review identifies a reusable rule.
+- A client portal, Ops Platform screen, or game menu establishes a pattern that
+  future work should reuse.
+
+## Baselines
+
+- Ops and SaaS tools should feel quiet, dense, organized, and built for repeated
+  work. Avoid marketing-page composition.
+- Games should hit Namleh's premium visual bar and may be more expressive.
+- Do not put UI cards inside other cards.
+- Do not hide primary workflows behind decorative hero content.
+- Do not use visible in-app tutorial text to describe controls that should be
+  self-evident.
+- Text must fit on mobile and desktop.
+
+## Storage
+
+Use the narrowest durable place:
+
+| Scope | Path |
+| --- | --- |
+| Current repo only | `.gstack-namleh/design-memory.md` |
+| Shared Namleh gstack test repo | `.gstack-namleh/design-memory/<project>.md` |
+| Final production plugin later | Namleh Codex plugin memory or Ops Platform design system |
+
+Append entries. Never overwrite prior preference history unless the user says a
+rule is obsolete.
+
+## Entry Format
+
+```markdown
+## YYYY-MM-DD - <project/screen>
+
+Signal: approved | rejected | caution
+Context: <what was being reviewed>
+Rule: <one reusable rule>
+Evidence: <screenshot/file/link if available>
+Applies to: <Ops Platform, client portals, games, all Namleh>
+```
+
+## Apply Flow
+
+1. Read project `AGENTS.md` and existing design system files.
+2. Read the relevant design-memory file if it exists.
+3. Check the current UI against captured rules.
+4. Fix concrete violations when the user asked for implementation.
+5. Report only the changes and remaining design risks.

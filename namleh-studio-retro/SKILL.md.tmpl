@@ -1,0 +1,82 @@
+---
+name: namleh-studio-retro
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack Studios engineering and business retrospective. Use for weekly,
+  milestone, or cross-project retros that combine shipped work, open risks,
+  project health, process lessons, and follow-up actions across Ops Platform,
+  games, client work, infrastructure, and internal tools.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh studio retro
+  - weekly namleh retro
+  - what did namleh ship
+  - namleh milestone retro
+---
+
+# Namleh Studio Retro
+
+Use this for a practical business/engineering retro, not a ceremonial meeting
+note.
+
+## Scope
+
+Default to the current repo and the last 7 days. If the user asks for cross-repo
+or studio-wide, include the relevant repos and Jira/Confluence context available
+through installed tools.
+
+## Gather
+
+For each repo in scope:
+
+```bash
+git status --short
+git branch --show-current
+git log --since="7 days ago" --oneline --decorate
+git diff --stat
+```
+
+If a PR, issue, release, or deployment is in scope, inspect it directly.
+
+## Scorecards
+
+Include only scorecards that have evidence:
+
+- shipped user value
+- security/authz health
+- release/deploy health
+- test and QA health
+- design/product clarity
+- operational drag
+- follow-up ownership
+
+## Output
+
+```text
+Window:
+Scope:
+
+Shipped:
+- concrete outcomes
+
+Health:
+| Area | Status | Evidence |
+
+Risks:
+- risk, owner, next action
+
+Process Lessons:
+- what to keep, change, or stop
+
+Next Actions:
+1. action, owner, repo/issue
+```
+
+If the retro needs to be shared with Tim or another stakeholder, make the output
+ready to paste into Jira, Confluence, or a PR comment.

@@ -1,0 +1,92 @@
+---
+name: namleh-browser-skillify
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Turns repeated Namleh gstack browser workflows into deterministic testable browser
+  skills or repo-local E2E scripts. Use after a successful manual browser QA
+  flow, vendor portal walkthrough, Ops Platform workflow, or repeated web task
+  that should become a durable Namleh automation.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh browser skillify
+  - codify this workflow
+  - make this browser flow reusable
+  - save this ops workflow
+---
+
+# Namleh Browser Skillify
+
+Use this skill to convert a successful browser workflow into a repeatable,
+tested artifact. Good candidates are workflows that Steven or Tim will run more
+than once, or workflows that should become release-gate QA.
+
+## Good Candidates
+
+- Ops Platform login, role switching, organization/client/project creation.
+- Direct API or UI checks for role-denied and tenant-denied paths.
+- Jira/Confluence import dry runs and reconciliation screens.
+- Client portal workflows that need screenshot evidence.
+- Vendor or partner portals where the page structure is stable enough to script.
+
+## Destination
+
+Pick the narrowest durable home:
+
+| Workflow Type | Default Home |
+| --- | --- |
+| Product QA for a repo | Existing E2E test folder, usually Playwright or app-native test convention |
+| Cross-repo Namleh browser task | `.gstack-namleh/browser-skills/<name>/` |
+| One-off handoff evidence | Do not skillify; put screenshots/results in the handoff |
+| Secret or credential setup | Do not script credentials; use Vault-backed setup paths only |
+
+Never commit captured cookies, tokens, local storage dumps, session files, or
+private customer data.
+
+## Build Contract
+
+1. Reconstruct the accepted successful flow: URL, steps, expected state, failure
+   state, and data setup.
+2. Create a small deterministic script or test. Prefer the repo's existing
+   Playwright, Cypress, Vitest/browser, xUnit, or integration-test pattern.
+3. Keep parsing and assertions pure where possible. The script should fail on
+   missing UI, wrong text, unexpected authorization success, or broken network
+   calls.
+4. Include at least one negative-path assertion for authz or workflow gates.
+5. Run the script locally before calling it done.
+6. Document only the invocation command and what it verifies.
+
+## Naming
+
+Use business workflow names, not implementation names:
+
+- `ops-create-client`
+- `ops-role-denied-client-edit`
+- `ops-jira-import-dry-run`
+- `club-member-checkin`
+- `avl-quote-approval`
+
+## Output
+
+```text
+Created:
+- path/to/script or test
+
+Workflow:
+- happy path:
+- failure path:
+
+Run:
+- command
+
+Verified:
+- command output summary
+
+Notes:
+- data prerequisites or Vault dependencies
+```

@@ -1,0 +1,94 @@
+---
+name: namleh-review-army
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack multi-specialist review workflow. Use when reviewing PRs, branches,
+  risky diffs, migrations, auth changes, workflow logic, or release candidates
+  that need more than a single generic code review. Runs focused passes for
+  authorization, API contracts, data migrations, workflow integrity,
+  performance, testing, maintainability, and red-team edge cases.
+allowed-tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
+  - WebSearch
+triggers:
+  - namleh review army
+  - specialist review this
+  - run the review council
+  - deep namleh review
+---
+
+# Namleh Review Army
+
+Use this skill when a change needs focused review from several angles. Treat it
+as a review council, not a replacement for tests.
+
+## Ground Rules
+
+- Read `AGENTS.md` first.
+- Compare against the correct base branch. Normal Namleh repos target `dev`.
+  This gstack test fork may review against `main`.
+- Lead with bugs, security risks, regressions, missing tests, and release
+  blockers. Keep style comments out unless they hide real risk.
+- Verify claims with files, lines, tests, or command output.
+- For secrets, Vault is the only source of truth. Never ask for credentials.
+- Do not create planning documents unless the user explicitly asks.
+
+## Review Passes
+
+Run only the passes that match the diff, plus `red-team` for any high-risk
+change.
+
+| Pass | Use When | Look For |
+| --- | --- | --- |
+| `authz-tenant` | identity, roles, organizations, clients, billing, private data | trusting params, missing resource ownership checks, broad DTOs, missing RLS/policies |
+| `api-contract` | endpoints, DTOs, webhooks, mobile/client contracts | breaking response shapes, weak errors, missing pagination/rate limits, undocumented behavior |
+| `data-migration` | schema, imports, backfills, destructive jobs | no rollback, lock risk, partial writes, missing indexes, tenant leakage |
+| `workflow-integrity` | business process, approvals, state machines | skipped statuses, invalid transitions, duplicate side effects, missing audit events |
+| `performance` | lists, dashboards, searches, background jobs | N+1 reads, unbounded queries, missing indexes, sync blocking, oversized payloads |
+| `testing` | any user-visible or security-sensitive change | missing negative paths, two-user authz tests, flaky setup, weak assertions |
+| `maintainability` | shared code, repeated patterns, long-lived modules | hidden coupling, magic strings, stale comments, unclear boundaries |
+| `red-team` | anything high-risk or easy to abuse | happy-path trust, silent failure, privilege escalation, replay, race conditions |
+
+## Commands
+
+Start by gathering the review surface:
+
+```bash
+git status --short
+git branch --show-current
+git fetch origin --quiet
+git diff --stat origin/dev...HEAD 2>/dev/null || git diff --stat origin/main...HEAD
+```
+
+Then inspect the changed files and adjacent code. For authz or workflow review,
+also search for sibling routes, handlers, commands, policies, and tests.
+
+## Output
+
+Return findings first, ordered by severity:
+
+```text
+Findings:
+- [P0|P1|P2] path:line - issue, impact, and fix.
+
+Specialist Coverage:
+- authz-tenant: pass/fail/skipped and why
+- api-contract: pass/fail/skipped and why
+- data-migration: pass/fail/skipped and why
+- workflow-integrity: pass/fail/skipped and why
+- performance: pass/fail/skipped and why
+- testing: pass/fail/skipped and why
+- red-team: pass/fail/skipped and why
+
+Verified:
+- commands/tests run
+
+Residual Risk:
+- anything not verified
+```
+
+If there are no findings, say so clearly and list any remaining test gaps.

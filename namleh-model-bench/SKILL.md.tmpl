@@ -1,0 +1,91 @@
+---
+name: namleh-model-bench
+preamble-tier: 1
+version: 0.1.0
+description: |
+  Namleh gstack model benchmarking workflow. Use when choosing which AI model or agent
+  stack should handle a Namleh workload such as security review, Ops Platform
+  product planning, UI critique, Unity generation, documentation, or browser QA.
+  Runs dry-run first, avoids credential workarounds, and reports practical cost,
+  latency, and quality tradeoffs.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+triggers:
+  - namleh model bench
+  - compare models for namleh
+  - which model should handle this
+  - model shootout for ops
+---
+
+# Namleh Model Bench
+
+Use this to pick the right model for a real Namleh job. Do not benchmark toy
+prompts unless the user explicitly asks.
+
+## Candidate Workloads
+
+- Ops Platform feature planning.
+- Security/authz review.
+- Browser QA interpretation.
+- UI/design critique.
+- Unity content or tool generation.
+- Release notes, handoff docs, and stakeholder summaries.
+
+## Rules
+
+- Never ask for API keys. If a provider is unavailable, report that as setup
+  work for Vault or the installed CLI/provider.
+- Always run a dry-run or auth/status check before spending model calls.
+- Do not enable paid judge/evaluator mode unless the user explicitly approves.
+- Save results only when they are useful for future comparisons.
+
+## Command Discovery
+
+Prefer the installed Namleh gstack binary:
+
+```bash
+BIN="$HOME/.codex/skills/namleh-gstack/bin/gstack-model-benchmark"
+[ -x "$BIN" ] || BIN="./bin/gstack-model-benchmark"
+[ -x "$BIN" ] || { echo "gstack-model-benchmark not found"; exit 1; }
+```
+
+Run dry-run before real work:
+
+```bash
+"$BIN" --prompt "dry run" --models claude,gpt,gemini --dry-run
+```
+
+## Benchmark Design
+
+Use a real prompt from the current work. For repeatable comparison, save the
+prompt to `.gstack-namleh/benchmarks/prompts/<slug>.md` if the user wants a
+baseline.
+
+For each model, judge:
+
+- answer correctness for this repo/business context
+- security discipline
+- amount of hallucinated process or nonexistent packages
+- useful next action
+- latency and cost
+- whether the output can be handed to Steven or Tim without cleanup
+
+## Output
+
+```text
+Workload:
+Models Available:
+Ran:
+
+Results:
+| Model | Fit | Latency | Cost | Strength | Risk |
+
+Recommendation:
+- primary model:
+- when to use another:
+
+Save Path:
+- path or "not saved"
+```

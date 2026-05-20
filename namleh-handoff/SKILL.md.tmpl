@@ -1,0 +1,90 @@
+---
+name: namleh-handoff
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack handoff and context continuity workflow. Use when work needs to be
+  resumed later, handed from Steven to Tim, captured into a PR comment, or
+  preserved after a long Codex session without making the next person rediscover
+  project state.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh handoff
+  - save this for tim
+  - capture where we are
+  - hand this off
+  - save ops context
+---
+
+# Namleh Handoff
+
+Use this when a person or future session needs to pick up work without
+rediscovering the same state.
+
+## Rules
+
+- Read `AGENTS.md` first.
+- Do not create a planning document unless the user asked for a handoff,
+  context save, PR note, issue note, or resume artifact.
+- Prefer PR comments, issue comments, or existing project docs when the handoff
+  needs to be shared. Prefer `.gstack-namleh/handoffs/` for local-only context.
+- Never include secrets, tokens, private customer data, or local machine-only
+  paths unless the path itself is the operational artifact.
+- Keep it concrete: branch, files touched, decisions, validation, blockers, and
+  exact next commands.
+
+## Gather
+
+```bash
+git status --short
+git branch --show-current
+git log --oneline -8
+git diff --stat
+```
+
+Also read the PR, issue, current plan, or recent docs if the user pointed at
+one. For Ops Platform work, include the workflow being protected and the roles
+or tenants involved.
+
+## Handoff Shape
+
+```text
+Context:
+- repo, branch, goal
+
+Done:
+- concrete completed work
+
+Decisions:
+- important choices and why
+
+Validation:
+- commands/tests/browser flows run
+
+Open:
+- blockers, risks, unknowns
+
+Next:
+1. exact next step
+2. exact next step
+
+Files:
+- important files and why they matter
+```
+
+## Storage
+
+If the user asks to save it locally:
+
+```bash
+mkdir -p .gstack-namleh/handoffs
+```
+
+Write `YYYYMMDD-HHMM-<slug>.md` in that directory. If the handoff is for Tim or a
+PR, prepare the same content as a PR or issue comment instead of hiding it in a
+local-only file.
