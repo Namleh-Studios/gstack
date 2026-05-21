@@ -1,0 +1,57 @@
+---
+name: namleh-artifact-governor
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack artifact governance workflow. Use when deciding where QA
+  reports, screenshots, release notes, handoffs, security scans, model
+  benchmarks, design artifacts, or generated docs should live, who can see them,
+  and how they should be retained or restored.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh artifact governor
+  - where should this report live
+  - artifact retention
+  - save this evidence
+  - qa evidence storage
+---
+
+# Namleh Artifact Governor
+
+Use this when an artifact matters after the current chat.
+
+## Classify First
+
+| Class | Examples | Default Home |
+| --- | --- | --- |
+| local-only | scratch notes, private debug logs | `.gstack-namleh/` |
+| repo evidence | QA report, release checklist | repo docs or PR comment |
+| shared internal | retros, model benchmarks, security reports | future Ops knowledge object or private artifact repo |
+| client/partner visible | delivery PDF, external spec | approved docs area with access control |
+| secret-bearing | logs with tokens, raw env dumps | do not store; redact or rotate |
+
+## Rules
+
+- Secret-scan before committing or sharing.
+- Screenshots may contain private data; treat them as internal unless proven
+  otherwise.
+- Prefer PR/issue comments for review-time evidence.
+- Prefer repo docs for durable technical docs.
+- Prefer Ops Platform storage once access controls exist.
+
+## Output
+
+```text
+Artifact:
+Class:
+Audience:
+Storage:
+Retention:
+Redactions:
+Restore/Link:
+```

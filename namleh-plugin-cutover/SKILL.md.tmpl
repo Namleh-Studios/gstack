@@ -1,0 +1,57 @@
+---
+name: namleh-plugin-cutover
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack plugin and marketplace cutover workflow. Use when moving tested
+  gstack-derived skills into production namleh-codex, deciding what remains in
+  the gstack test fork, bumping plugin versions, or replacing temporary local
+  installs with the Git-backed Namleh Codex marketplace.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh plugin cutover
+  - move this into namleh codex
+  - productionize gstack skills
+  - plugin marketplace cutover
+---
+
+# Namleh Plugin Cutover
+
+Use this when a tested workflow should graduate from the gstack test fork into
+the production Namleh Codex plugin stack.
+
+## Stages
+
+1. Test fork only: `Namleh-Studios/gstack`, generated `namleh-gstack-*` skills.
+2. Local repo test: `AGENTS.md` routes in the target repo.
+3. Production plugin: `namleh-codex` marketplace package with version bump.
+4. Ops Platform integration: workflows become first-party product features or
+   hosted MCP capabilities.
+
+## Cutover Checklist
+
+- Skill has been used on real work at least once.
+- Trigger is clear and not too broad.
+- No gstack-private paths leak into Namleh production.
+- Vault rule is preserved.
+- Normal repo branch/PR rules are preserved.
+- Tests or validation commands exist.
+- Tim handoff impact is documented when relevant.
+- Rollback path is a plugin version rollback or removal from host include list.
+
+## Output
+
+```text
+Candidate:
+Current Home:
+Target Home:
+Changes Needed:
+Validation:
+Rollback:
+Ship Plan:
+```

@@ -1,0 +1,68 @@
+---
+name: namleh-docs-publisher
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack documentation and PDF publishing workflow. Use when converting
+  shipped work, QA evidence, specs, handoffs, or client/stakeholder material into
+  polished internal docs, PR documentation, Confluence/Ops knowledge, or
+  ready-to-share PDFs.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh docs publisher
+  - publish this doc
+  - make this stakeholder ready
+  - docs coverage
+  - pdf handoff
+---
+
+# Namleh Docs Publisher
+
+Use this when documentation needs to be more than a chat summary.
+
+## Doc Types
+
+- release note
+- technical spec
+- implementation handoff
+- QA report
+- security report
+- client-facing PDF
+- migration/import runbook
+- decision record
+
+## Flow
+
+1. Identify audience and sensitivity.
+2. Read the code, PR, issue, or artifact being documented.
+3. Choose the right form:
+   - PR comment for review context
+   - repo `docs/` for durable technical docs
+   - Confluence/Ops knowledge for shared business context
+   - PDF for external/stakeholder handoff
+4. Verify no claims are invented.
+5. Check links and file references.
+6. If making a PDF, render and verify it opens.
+
+## Quality Bar
+
+- Concrete paths, commands, and dates.
+- No fake send/success states.
+- No secrets or private data.
+- Audience-appropriate language.
+- Clear next action or decision.
+
+## Output
+
+```text
+Published:
+Audience:
+Source Evidence:
+Verification:
+Storage:
+```

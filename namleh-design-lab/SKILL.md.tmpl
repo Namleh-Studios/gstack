@@ -1,0 +1,65 @@
+---
+name: namleh-design-lab
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack visual design exploration workflow. Use when an Ops Platform,
+  client portal, internal tool, game UI, or stakeholder-facing screen needs
+  visual exploration, variant comparison, design critique, or conversion from
+  approved direction into implementable UI.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh design lab
+  - explore ui variants
+  - visual direction
+  - design mockup workflow
+---
+
+# Namleh Design Lab
+
+Use this for visual exploration before implementation, especially when prose
+would hide the real design decision.
+
+## Fit
+
+- Ops Platform screens and dashboards.
+- Client/partner portals.
+- Game menus and HUDs.
+- Shareable stakeholder mockups.
+
+## Rules
+
+- Ops tools should be quiet, dense, and efficient.
+- Games should meet the Namleh premium visual bar.
+- Do not treat a generated image as implementation truth. Use it to pick
+  direction, then build inspectable UI from code/design-system constraints.
+- Capture approved/rejected preferences with `namleh-design-memory`.
+- Use browser screenshots or app renders for final verification.
+
+## Flow
+
+1. Read existing design system and `AGENTS.md`.
+2. Define audience, task, information density, and constraints.
+3. Produce or request 2-3 variants only when the decision benefits from seeing
+   them.
+4. Compare variants by workflow clarity, brand fit, accessibility, and build
+   cost.
+5. Implement from the approved direction using the repo's UI patterns.
+6. Verify responsive layout and text fit.
+
+## Output
+
+```text
+Direction:
+Variants:
+Chosen:
+Rejected:
+Implementation Notes:
+Verification:
+Design Memory:
+```

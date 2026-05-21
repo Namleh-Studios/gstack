@@ -1,0 +1,71 @@
+---
+name: namleh-question-profile
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack question tuning and working-style profile workflow. Use when
+  Codex keeps asking repeated questions, when Steven or Tim wants a preference
+  remembered, or when creating a lightweight team profile for how Namleh wants
+  agents to ask, decide, document, review, or ship.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh question profile
+  - remember how we decide
+  - stop asking this
+  - steven tim preferences
+  - tune namleh questions
+---
+
+# Namleh Question Profile
+
+Use this to turn repeated preference corrections into durable process.
+
+## What To Capture
+
+- ask vs act preference for common workflow decisions
+- risk tolerance by area: security, release, UX polish, refactor, cost
+- default branch/PR behavior by repo type
+- documentation depth preferences
+- when Steven wants short updates vs detailed reasoning
+- where Tim should get a handoff instead of a local note
+
+## Safety Rule
+
+Do not infer irreversible preferences from a single moment. Destructive actions,
+security tradeoffs, production deploys, credential work, data migrations, and
+owner-only `dev` to `main` merges always remain explicit.
+
+## Storage
+
+Short term, write repo-local notes only when asked:
+
+```text
+.gstack-namleh/question-profile.md
+```
+
+For shared rules, propose a change to `AGENTS.md` or the future production
+`namleh-codex` plugin. Do not write personal behavioral profiles into shared
+repos unless the user asks.
+
+## Entry Format
+
+```markdown
+## YYYY-MM-DD - <preference>
+
+Signal: explicit | observed | correction
+Applies to: repo | project type | all Namleh
+Rule: <what Codex should do differently>
+Safety exceptions: <what still requires asking>
+Evidence: <user wording or workflow>
+```
+
+## Use
+
+When a matching situation appears later, apply explicit rules first, then
+project `AGENTS.md`, then general Namleh standards. If a rule conflicts with
+security or Vault policy, security wins.

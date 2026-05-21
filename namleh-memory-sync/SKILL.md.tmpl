@@ -1,0 +1,83 @@
+---
+name: namleh-memory-sync
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack memory and artifact sync planner. Use when designing or testing
+  cross-session memory, handoff persistence, GBrain-inspired knowledge sync,
+  Ops Platform knowledge ingestion, or shared Steven/Tim context continuity.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh memory sync
+  - shared namleh memory
+  - sync agent context
+  - ops knowledge memory
+---
+
+# Namleh Memory Sync
+
+Use this when gstack-style memory should become Namleh-owned process or Ops
+Platform infrastructure.
+
+## Position
+
+Do not blindly copy gstack's personal `~/.gstack` or GBrain setup. For Namleh,
+the durable target is:
+
+- short term: local `.gstack-namleh/` artifacts for test repos
+- medium term: private Git-backed artifact sync for handoffs, reviews, QA, and
+  retros
+- final state: Namleh Ops owns knowledge, decisions, work history, search, and
+  access control
+
+## Guardrails
+
+- Secrets live in Vault only. Never sync tokens, cookies, local storage, service
+  account files, or credential-shaped logs.
+- Access control must be repo/project/client aware before any shared memory is
+  visible to Tim, contractors, partners, or clients.
+- Append-only logs are preferred for events. Markdown is fine for human handoff.
+- Every synced artifact needs a privacy class: internal, client-visible,
+  partner-visible, or local-only.
+
+## Useful Artifact Types
+
+- handoffs
+- release notes
+- QA reports and screenshots
+- review-army findings
+- security/audit reports
+- design decisions
+- model benchmark results
+- retros
+- migration/import notes
+
+## Workflow
+
+1. Identify the artifact and who should be able to read it.
+2. Classify privacy and retention.
+3. Choose storage:
+   - local-only `.gstack-namleh/`
+   - repo docs
+   - private Git artifact repo
+   - future Ops Platform knowledge object
+4. Secret-scan before sharing or committing.
+5. Add a restore path so a future Codex session can find it without asking the
+   user to remember where it went.
+
+## Output
+
+```text
+Artifact:
+Audience:
+Privacy:
+Storage:
+Restore Path:
+Security Checks:
+Next Step:
+```

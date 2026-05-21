@@ -1,0 +1,71 @@
+---
+name: namleh-pacing-governor
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack pacing and interruption-control workflow. Use when agent work is
+  getting too noisy, when a plan/review asks too many questions, or when tuning a
+  workflow so Steven and Tim only see decisions that materially affect outcome,
+  security, cost, timeline, or ownership.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh pacing governor
+  - too many questions
+  - reduce interruptions
+  - quiet this workflow down
+  - decision pacing
+---
+
+# Namleh Pacing Governor
+
+Use this to reduce ceremony without hiding real decisions.
+
+## Decision Budget
+
+Surface these every time:
+
+- irreversible or destructive action
+- production deploy or owner-only merge
+- secrets, credentials, Vault write, or rotation
+- data migration or bulk import
+- security/authz tradeoff
+- spending money or increasing recurring cost
+- scope increase larger than a small task
+
+Auto-decide or batch these when repo rules are clear:
+
+- routine formatting
+- established test command choices
+- obvious generated-doc placement
+- low-risk cleanup
+- repeated workflow routing
+
+## Flow
+
+1. List all decisions the workflow wants to ask.
+2. Classify each as one-way or two-way.
+3. Ask one-way decisions explicitly.
+4. Batch two-way decisions into a compact "I will do X unless you object" note.
+5. Record reusable pacing rules in `AGENTS.md` or `namleh-question-profile`
+   only when the user asks or corrects you.
+
+## Output
+
+```text
+Must Ask:
+- decision and why
+
+Auto-Decided:
+- decision, rule used, how to reverse
+
+Deferred:
+- low-value decision skipped for now
+```
+
+If the user says "less text" or "just do it," shorten updates immediately while
+preserving safety asks.

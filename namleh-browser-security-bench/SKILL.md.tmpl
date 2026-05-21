@@ -1,0 +1,69 @@
+---
+name: namleh-browser-security-bench
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack browser-agent security benchmark workflow. Use when testing
+  prompt-injection defenses, browser automation safety, internal/vendor portal
+  automation, agent browsing of Ops Platform, or any workflow where untrusted web
+  content can influence agent actions.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - WebSearch
+triggers:
+  - namleh browser security bench
+  - prompt injection benchmark
+  - test browser agent safety
+  - browser automation security
+---
+
+# Namleh Browser Security Bench
+
+Use this before trusting agents with internal or external web workflows.
+
+## Threat Model
+
+Untrusted web content may try to make the agent:
+
+- reveal secrets or private data
+- navigate to attacker-controlled URLs
+- click destructive controls
+- bypass tenant/client boundaries
+- ignore system or project instructions
+- exfiltrate screenshots, page text, tokens, or files
+
+## Minimum Controls
+
+- deterministic allowlist for browser/tool commands
+- URL and origin validation
+- no credential capture in scripts or fixtures
+- page content treated as untrusted input
+- explicit data/action authorization checks in the app
+- canary or sentinel tests for prompt-injection attempts
+- negative tests for role and tenant denial
+
+## Benchmark Flow
+
+1. Identify the browser workflow and sensitive data/action.
+2. Build benign happy-path fixture.
+3. Build adversarial fixture with hidden and visible injection text.
+4. Run the workflow against both.
+5. Confirm the adversarial case cannot change tool choice, target URL, data
+   access, or state-changing action.
+6. Save evidence only if it contains no secrets or private customer data.
+
+## Output
+
+```text
+Workflow:
+Sensitive Boundary:
+Adversarial Fixtures:
+Controls Verified:
+Failures:
+Fixes:
+Residual Risk:
+```

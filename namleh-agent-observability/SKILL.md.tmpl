@@ -1,0 +1,74 @@
+---
+name: namleh-agent-observability
+preamble-tier: 2
+version: 0.1.0
+description: |
+  Namleh gstack agent observability workflow. Use when designing dashboards,
+  logs, timelines, health reports, skill usage summaries, agent activity feeds,
+  or Ops Platform views that show what Codex/agents did, verified, blocked on,
+  or handed off.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+triggers:
+  - namleh agent observability
+  - agent dashboard
+  - show what codex did
+  - agent timeline
+  - workflow telemetry
+---
+
+# Namleh Agent Observability
+
+Use this when agent work needs to become visible, auditable, and useful to
+humans.
+
+## Events To Capture
+
+- workflow/skill invoked
+- repo, branch, issue/PR, and project
+- files changed
+- tests and validations run
+- security checks and findings
+- deployment or CI result
+- handoff created
+- blocker or user decision required
+
+## Avoid
+
+- secrets, tokens, raw env values, cookies, PII
+- hidden behavioral tracking
+- noisy token/LOC vanity as the lead metric
+- dashboards without actionability
+
+## Useful Views
+
+- current workstream status
+- release readiness
+- security review history
+- QA evidence by workflow
+- model benchmark history
+- handoff queue for Tim
+- failed/blocked automations
+
+## Output
+
+```text
+Event Model:
+- fields
+
+Storage:
+- local/repo/Ops Platform
+
+Dashboard:
+- views and filters
+
+Privacy:
+- redactions and access rules
+
+First Implementation:
+- smallest useful slice
+```
